@@ -1,0 +1,7 @@
+# Part I general paragraphs as modifiers (plan §5 "Part I general paragraphs").
+# P4/P5 amounts are entered by the advocate per case — seeded with value 0;
+# the API layer must require an amount when these are applied.
+
+modifiers:
+  - { code: P4.EXCEPTIONAL_DISPATCH, label: "Additional remuneration for exceptional dispatch / out-of-hours work (advocate-and-client only)", rule_reference: "para 4", op: add, value: 0, condition_key: exceptional_dispatch, sort_order: 30 }
+  - { code: P5.SPECIAL_FEE,          label: "Special fee for exceptional importance or unusual complexity — factors (a)–(d)", rule_reference: "para 5", op: add, value: 0, condition_key: special_fee, sort_order: 30 }

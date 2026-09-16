@@ -1,0 +1,16 @@
+# Schedule 3 — companies
+
+items:
+  - code: S3.INCORPORATION
+    schedule: 3
+    label: "Incorporation of a company — all work up to certificate of incorporation"
+    rule_reference: "Sch 3, para 1"
+    computation: discretionary_floor
+    included_amount: 60_000
+
+  - code: S3.FOREIGN_REGISTRATION
+    schedule: 3
+    label: "Registration of a foreign company"
+    rule_reference: "Sch 3, para 2"
+    computation: discretionary_floor
+    included_amount: 60_000

@@ -1,0 +1,50 @@
+# Schedule 5 — general business and para 22 elected matters
+
+items:
+  - code: S5.HOURLY
+    schedule: 5
+    label: "Agreed hourly rate (Part I) — rate taken from the fee agreement"
+    rule_reference: "Sch 5 Part I, para 2"
+    computation: flat
+    included_amount: 0
+    unit_label: hour
+    params: { note: "Quantity × agreed hourly rate from fee_agreements; para 3 floor still applies via the otherwise-applicable schedule unless para 22 election" }
+
+  - { code: S5.INSTRUCTIONS, schedule: 5, label: "Instructions — fair and reasonable fee (no floor stated)", rule_reference: "Sch 5 Part II, item 1", computation: discretionary_floor, included_amount: 0 }
+  - { code: S5.DRAWING,      schedule: 5, label: "Drawing",  rule_reference: "Sch 5 Part II, item 2", computation: per_folio, unit_label: folio, params: { per_unit: 250 } }
+  - { code: S5.ENGROSSING,   schedule: 5, label: "Engrossing", rule_reference: "Sch 5 Part II, item 2", computation: per_folio, unit_label: folio, params: { per_unit: 50 } }
+  - { code: S5.FAIR_COPY,    schedule: 5, label: "Fair copying", rule_reference: "Sch 5 Part II, item 2", computation: per_folio, unit_label: folio, params: { per_unit: 30 } }
+  - { code: S5.PERUSING,     schedule: 5, label: "Perusing", rule_reference: "Sch 5 Part II, item 2", computation: per_folio, unit_label: folio, params: { per_unit: 70 } }
+
+  - { code: S5.ATTENDANCE,   schedule: 5, label: "Attendance, ordinary cases — per 15 min or part", rule_reference: "Sch 5 Part II, item 3", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_000 } }
+  - { code: S5.PHONE,        schedule: 5, label: "Routine telephone calls within Kenya — per 15 min or part", rule_reference: "Sch 5 Part II, item 3", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 150 } }
+  - { code: S5.TIME_ENGAGED, schedule: 5, label: "Time engaged, in lieu of per-item charges — per 15 min or part", rule_reference: "Sch 5 Part II, item 4", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 7_000 } }
+
+  - { code: S5.LETTER,                 schedule: 5, label: "Letter dispatched", rule_reference: "Sch 5 Part II, item 5", computation: flat, included_amount: 300 }
+  - { code: S5.LETTER.PER_FOLIO,       schedule: 5, label: "Letter dispatched — alternative per folio", rule_reference: "Sch 5 Part II, item 5", computation: per_folio, unit_label: folio, params: { per_unit: 200 } }
+  - { code: S5.LETTER_RECEIVED,        schedule: 5, label: "Letter received and perused", rule_reference: "Sch 5 Part II, item 5", computation: flat, included_amount: 150 }
+  - { code: S5.LETTER_RECEIVED.PER_FOLIO, schedule: 5, label: "Letter received — alternative per folio", rule_reference: "Sch 5 Part II, item 5", computation: per_folio, unit_label: folio, params: { per_unit: 70 } }
+
+  - { code: S5.OPINION,     schedule: 5, label: "Formal written opinion", rule_reference: "Sch 5 Part II, item 6", computation: discretionary_floor, included_amount: 35_000 }
+  - { code: S5.JOURNEY.DAY, schedule: 5, label: "Journey from home — per day of not less than 7 hours", rule_reference: "Sch 5 Part II, item 6", computation: flat, included_amount: 15_000, unit_label: day }
+  - { code: S5.JOURNEY.HOUR, schedule: 5, label: "Journey from home — less than 7 hours, per hour", rule_reference: "Sch 5 Part II, item 6", computation: per_unit, unit_label: hour, params: { per_unit: 2_500 } }
+
+  - code: S5.DEBT_COLLECTION
+    schedule: 5
+    label: "Non-contentious debt collection — inclusive scale"
+    rule_reference: "Sch 5 Part II, item 7"
+    basis_type: debt
+    computation: base_plus_rate
+    bands:
+      - { lower: 0,         upper: 100_000,   fixed: 0,       rate: "0.10" }
+      - { lower: 100_000,   upper: 500_000,   fixed: 10_000,  rate: "0.05" }
+      - { lower: 500_000,   upper: 2_000_000, fixed: 50_000,  rate: "0.03" }
+      - { lower: 2_000_000, upper: null,      fixed: 100_000, rate: "0.015" }
+
+  - { code: S5.CHATTELS.SMALL, schedule: 5, label: "Chattels transfer instrument — amount secured ≤ 50,000", rule_reference: "Sch 5, Chattels Transfer", computation: flat, included_amount: 6_000 }
+  - { code: S5.CHATTELS.LARGE, schedule: 5, label: "Chattels transfer instrument — amount secured > 50,000: half of Sch 1 Second Scale", rule_reference: "Sch 5, Chattels Transfer", basis_type: amount_secured, computation: pointer, params: { target: "S1.SECURITY.GRANTEE with modifier S5.CHATTELS.HALF" } }
+
+modifiers:
+  - { code: S5.DEBT.ONE_LETTER,       label: "Debt collection — not more than one letter of demand written", rule_reference: "Sch 5 Part II, item 7(a)", op: multiply, value: "0.5", applies_to: [S5.DEBT_COLLECTION], condition_key: one_letter_only, sort_order: 20 }
+  - { code: S5.DEBT.ONE_LETTER.FLOOR, label: "Debt collection — minimum after one-letter reduction", rule_reference: "Sch 5 Part II, item 7(a)", op: floor, value: 1_000, applies_to: [S5.DEBT_COLLECTION], condition_key: one_letter_only, sort_order: 80 }
+  - { code: S5.CHATTELS.HALF,         label: "Chattels transfer > 50,000 — half of Sch 1 Second Scale", rule_reference: "Sch 5, Chattels Transfer", op: multiply, value: "0.5", applies_to: [S1.SECURITY.GRANTEE], condition_key: chattels_transfer, sort_order: 20 }

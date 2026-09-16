@@ -1,0 +1,43 @@
+# Schedule 8 — Landlord & Tenant (Shops, Hotels and Catering Establishments)
+# tribunal. Lower scale where disposed of ex parte / by consent / on a
+# preliminary point of law; higher otherwise. Part B ×1.5 confirmed present.
+
+items:
+  - code: S8.INSTR
+    schedule: 8
+    label: "Instruction fee (incl. taking instructions, drawing/perusing, engrossing, filing)"
+    rule_reference: "Sch 8, item 7(2)(a)"
+    basis_type: value
+    computation: tiered
+    scale_variant: lower_higher
+    applies_cost_basis: contentious
+    bands:
+      - { scale: lower,  lower: 0,       upper: 10_000,   fixed: 1_293 }
+      - { scale: lower,  lower: 10_000,  upper: 20_000,   fixed: 2_000 }
+      - { scale: lower,  lower: 20_000,  upper: 50_000,   fixed: 8_000 }
+      - { scale: lower,  lower: 50_000,  upper: 100_000,  fixed: 15_000 }
+      - { scale: lower,  lower: 100_000, upper: 250_000,  fixed: 22_500 }
+      - { scale: lower,  lower: 250_000, upper: null,     rate: "0.02" }
+      - { scale: higher, lower: 0,       upper: 10_000,   fixed: 5_000 }
+      - { scale: higher, lower: 10_000,  upper: 20_000,   fixed: 8_000 }
+      - { scale: higher, lower: 20_000,  upper: 50_000,   fixed: 15_000 }
+      - { scale: higher, lower: 50_000,  upper: 100_000,  fixed: 22_500 }
+      - { scale: higher, lower: 100_000, upper: 250_000,  fixed: 35_000 }
+      - { scale: higher, lower: 250_000, upper: null,     rate: "0.02" }
+
+  - { code: S8.NON_PECUNIARY.UNOPPOSED, schedule: 8, label: "Complaint for non-pecuniary relief (not possession) — undefended/unopposed", rule_reference: "Sch 8, item 7(2)(b)", computation: discretionary_floor, included_amount: 2_940, applies_cost_basis: contentious }
+  - { code: S8.NON_PECUNIARY.OPPOSED,   schedule: 8, label: "Complaint for non-pecuniary relief — opposed", rule_reference: "Sch 8, item 7(2)(b)", computation: discretionary_floor, included_amount: 23_520, applies_cost_basis: contentious }
+  - { code: S8.OTHER,                   schedule: 8, label: "Proceedings not otherwise provided for", rule_reference: "Sch 8, item 7(2)(d)", computation: discretionary_floor, included_amount: 15_000, applies_cost_basis: contentious }
+  - { code: S8.ATTEND.TRIBUNAL,         schedule: 8, label: "Necessary attendance on Tribunal other than at hearing", rule_reference: "Sch 8, item 8(a)", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
+  - { code: S8.ATTEND.OFFICES,          schedule: 8, label: "Attendance at offices of the tribunal", rule_reference: "Sch 8, item 8(b)", computation: flat, included_amount: 1_000, applies_cost_basis: contentious }
+  - { code: S8.HEARING.FIRST_DAY,       schedule: 8, label: "Hearing — first whole day", rule_reference: "Sch 8, item 8(c)(i)", computation: flat, included_amount: 4_000, applies_cost_basis: contentious }
+  - { code: S8.HEARING.SUBSEQUENT_PART, schedule: 8, label: "Hearing — each part of day after the first", rule_reference: "Sch 8, item 8(c)(ii)", computation: per_unit, unit_label: "part of day", params: { per_unit: 2_100 }, applies_cost_basis: contentious }
+  - { code: S8.ADJOURNMENT,             schedule: 8, label: "Costs of adjournment where awarded", rule_reference: "Sch 8, item 8(d)", computation: flat, included_amount: 900, applies_cost_basis: contentious }
+  - { code: S8.SERVICE.LOCAL,           schedule: 8, label: "Service within 3 km of the Tribunal", rule_reference: "Sch 8, item 8(e)(i)", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
+  - { code: S8.SERVICE.PER_KM,          schedule: 8, label: "Service — each additional km over 3, not exceeding 35/km", rule_reference: "Sch 8, item 8(e)(ii)", computation: per_unit, unit_label: km, params: { per_unit: 35, cap: true }, applies_cost_basis: contentious }
+  - { code: S8.SERVICE.POST,            schedule: 8, label: "Service by post, if authorized", rule_reference: "Sch 8, item 8(e)(iii)", computation: flat, included_amount: 100, applies_cost_basis: contentious }
+  - { code: S8.AFFIDAVIT.SERVICE,       schedule: 8, label: "Drawing and filing affidavit/return of service incl. swearing fee", rule_reference: "Sch 8, item 8(f)", computation: flat, included_amount: 100, applies_cost_basis: contentious }
+  - { code: S8.AFFIDAVIT.OTHER,         schedule: 8, label: "Drawing and filing other affidavits — first 4 folios 500, then 100/folio", rule_reference: "Sch 8, item 8(g)", computation: per_folio, unit_label: folio, units_included: 4, included_amount: 500, params: { per_unit: 100 }, applies_cost_basis: contentious }
+
+modifiers:
+  - { code: S8.DISTRESS, label: "Leave to levy distress — half of item 7(2)(a) fee", rule_reference: "Sch 8, item 7(2)(c)", op: multiply, value: "0.5", applies_to: [S8.INSTR], condition_key: levy_distress, sort_order: 20 }

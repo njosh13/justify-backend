@@ -1,0 +1,44 @@
+# Schedule 2 — leases at a rack rent
+# Adopted reading (I-2, I-3): cumulative tiers, NOT the literal Note 4
+# bracket-rate reading.
+
+items:
+  - code: S2.LEASE.PREPARE
+    schedule: 2
+    label: "Drawing, completing and registering a lease — lessor's advocate"
+    rule_reference: "Sch 2, para 1 (I-2/I-3 cumulative reading)"
+    basis_type: annual_rent
+    computation: tiered
+    bands:
+      - { lower: 0,       upper: 500_000,   rate: "0.15", floor: 20_000 }
+      - { lower: 500_000, upper: 3_000_000, rate: "0.03" }
+      - { lower: 3_000_000, upper: null,    rate: "0.01" }
+
+  - code: S2.LEASE.PERUSE
+    schedule: 2
+    label: "Perusing and completing a lease — lessee's advocate (half of para 1)"
+    rule_reference: "Sch 2, para 2 — half of para 1, seeded as halved bands"
+    basis_type: annual_rent
+    computation: tiered
+    bands:
+      - { lower: 0,       upper: 500_000,   rate: "0.075", floor: 10_000 }
+      - { lower: 500_000, upper: 3_000_000, rate: "0.015" }
+      - { lower: 3_000_000, upper: null,    rate: "0.005" }
+
+  - code: S2.PREMIUM
+    schedule: 2
+    label: "Premium on a lease — charge S1.SALE on the premium as a separate line"
+    rule_reference: "Sch 2, para 48"
+    basis_type: consideration
+    computation: pointer
+    params: { target: "S1.SALE on the premium" }
+
+  - code: S2.EXTENSION_BY_ENDORSEMENT
+    schedule: 2
+    label: "Extension of lease by endorsement — Schedule 5"
+    rule_reference: "Sch 2, Note 2"
+    computation: pointer
+    params: { target: "Schedule 5" }
+
+modifiers:
+  - { code: S2.PRINTED_FORM, label: "Two or more leases in common form", rule_reference: "Sch 2, printed form proviso", op: multiply, value: "0.66666666666666666667", applies_to: [S2.LEASE.PREPARE, S2.LEASE.PERUSE], condition_key: common_form_leases, sort_order: 20 }

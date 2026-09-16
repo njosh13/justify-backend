@@ -1,0 +1,55 @@
+# Schedule 12 — patents, utility models, industrial designs (LN 35/2014)
+
+items:
+  # 1. Initial applications
+  - { code: S12.PATENT,          schedule: 12, label: "Instructions to register one patent", rule_reference: "Sch 12, item 1(a)", computation: flat, included_amount: 42_000 }
+  - { code: S12.DESIGN,          schedule: 12, label: "Instructions to register one industrial design", rule_reference: "Sch 12, item 1(b)", computation: flat, included_amount: 42_000 }
+  - { code: S12.UTILITY_MODEL,   schedule: 12, label: "Instructions to register one utility model", rule_reference: "Sch 12, item 1(c)", computation: flat, included_amount: 42_000 }
+  - { code: S12.NATIONAL_PHASE,  schedule: 12, label: "Instructions to enter national phase of international application", rule_reference: "Sch 12, item 1(d)", computation: flat, included_amount: 42_000 }
+
+  # 2. Subsidiary processing
+  - { code: S12.AMENDMENT,         schedule: 12, label: "Amendment of specification/claims/abstract/drawings of pending patent or utility model", rule_reference: "Sch 12, item 2(a)", computation: flat, included_amount: 15_120 }
+  - { code: S12.CONVERSION,        schedule: 12, label: "Convert patent ↔ utility model application + preliminary advice", rule_reference: "Sch 12, item 2(b)", computation: flat, included_amount: 15_120 }
+  - { code: S12.SUBSTANTIVE_EXAM,  schedule: 12, label: "Application for substantive examination + preliminary advice", rule_reference: "Sch 12, item 2(c)", computation: flat, included_amount: 6_048 }
+
+  # 3. Licences
+  - { code: S12.LICENCE.REGISTER,         schedule: 12, label: "Register licensee + advice on registerability of licence agreement", rule_reference: "Sch 12, item 3(d)", computation: flat, included_amount: 21_000 }
+  - { code: S12.LICENCE.DRAW_APPLICATION, schedule: 12, label: "Drawing licence application", rule_reference: "Sch 12, item 3(e)", computation: flat, included_amount: 6_300 }
+  - { code: S12.LICENCE.DRAW_AGREEMENT,   schedule: 12, label: "Drawing licence agreement — depending on work involved", rule_reference: "Sch 12, item 3(f)", computation: discretionary_floor, included_amount: 12_600 }
+
+  # 4–8. Assignments, annuity, extension, restore, change of name/address
+  - { code: S12.ASSIGNMENT,          schedule: 12, label: "Register subsequent proprietor of pending/registered patent, utility model or design", rule_reference: "Sch 12, Assignments", computation: flat, included_amount: 21_000 }
+  - { code: S12.ANNUITY,             schedule: 12, label: "Pay annual maintenance fee + draft/file annuity application", rule_reference: "Sch 12, Annuity applications", computation: flat, included_amount: 12_600 }
+  - { code: S12.EXTENSION_TERM,      schedule: 12, label: "Extension of term of industrial design registration", rule_reference: "Sch 12, Extension applications", computation: flat, included_amount: 12_600 }
+  - { code: S12.RESTORE,             schedule: 12, label: "Restore registration of patent/utility model/design + supporting affidavits", rule_reference: "Sch 12, Restoration applications", computation: flat, included_amount: 15_000 }
+  - { code: S12.CHANGE_NAME_ADDRESS, schedule: 12, label: "Register change of name/address of proprietor + review supporting documents", rule_reference: "Sch 12, Change of name or address", computation: flat, included_amount: 10_000 }
+
+  # Searches and copies
+  - { code: S12.SEARCH.QUALIFIED,          schedule: 12, label: "Search at KIPI and advise — qualified person", rule_reference: "Sch 12, Searches (i)", computation: flat, included_amount: 10_000 }
+  - { code: S12.SEARCH.UNQUALIFIED,        schedule: 12, label: "Search at KIPI — unqualified person", rule_reference: "Sch 12, Searches (ii)", computation: flat, included_amount: 2_000 }
+  - { code: S12.CERTIFIED_COPY.FIRST,      schedule: 12, label: "Registry certified copy — one copy", rule_reference: "Sch 12, Copies (i)", computation: flat, included_amount: 2_940 }
+  - { code: S12.CERTIFIED_COPY.SUBSEQUENT, schedule: 12, label: "Certified copies — second and additional, simultaneous", rule_reference: "Sch 12, Copies (ii)", computation: flat, included_amount: 882 }
+
+  # 10. Infringement / expungement / rectification / opposition / appeals
+  - { code: S12.OPPOSITION,             schedule: 12, label: "File or defend infringement/expungement/rectification/caution/opposition, compulsory licence applications, appeals to Tribunal", rule_reference: "Sch 12, item 10(a),(b)", computation: discretionary_floor, included_amount: 210_000 }
+  - { code: S12.ATTEND.DAY,             schedule: 12, label: "Attendance before MD/Tribunal — full day", rule_reference: "Sch 12, item 10(c)(i)", computation: flat, included_amount: 16_464, unit_label: day }
+  - { code: S12.ATTEND.HALF_DAY,        schedule: 12, label: "Attendance before MD/Tribunal — half-day or part", rule_reference: "Sch 12, item 10(c)(ii)", computation: flat, included_amount: 8_232 }
+  - { code: S12.ATTEND.INTERLOCUTORY,   schedule: 12, label: "Interlocutory matters, directions, judgments — per 15 min or part", rule_reference: "Sch 12, item 10(c)(iv)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_127 } }
+  - { code: S12.ATTEND.TAXATION,        schedule: 12, label: "On taxation of bill of costs — per 15 min or part", rule_reference: "Sch 12, item 10(c)(v)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_127 } }
+
+  # 11. Miscellaneous
+  - { code: S12.ADVICE,               schedule: 12, label: "Advice on patentability / registrability / point of law or practice", rule_reference: "Sch 12, Miscellaneous", computation: discretionary_floor, included_amount: 25_000 }
+  - { code: S12.REASONS_REFUSAL,      schedule: 12, label: "Request reasons for refusal", rule_reference: "Sch 12, Miscellaneous", computation: flat, included_amount: 8_400 }
+  - { code: S12.SURRENDER,            schedule: 12, label: "Instructions to surrender patent/utility model/design", rule_reference: "Sch 12, Miscellaneous (l)", computation: flat, included_amount: 8_400 }
+  - { code: S12.CAUTION,              schedule: 12, label: "Caution or similar notice entered/removed from Register — fee not stated in published text", rule_reference: "Sch 12, Miscellaneous (m)", computation: flat, included_amount: 0, params: { pending: "fee absent from published text" } }
+  - { code: S12.ATTEND.ARGUMENT_15MIN, schedule: 12, label: "Attendance on MD/Tribunal — argument, per 15 min or part", rule_reference: "Sch 12, Miscellaneous (n)(i)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_127 } }
+  - { code: S12.ATTEND.FILING_15MIN,  schedule: 12, label: "Attendance on MD/Tribunal — filing papers, per 15 min or part", rule_reference: "Sch 12, Miscellaneous (n)(ii)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 840 } }
+  - { code: S12.LETTER,               schedule: 12, label: "Correspondence charged separately — per letter", rule_reference: "Sch 12, Miscellaneous (o)(i)", computation: flat, included_amount: 294 }
+  - { code: S12.LETTER.PER_FOLIO,     schedule: 12, label: "Correspondence — per folio", rule_reference: "Sch 12, Miscellaneous (o)(ii)", computation: per_folio, unit_label: folio, params: { per_unit: 176 } }
+  - { code: S12.LETTER_RECEIVED,      schedule: 12, label: "Receiving/perusing letters etc. — per letter", rule_reference: "Sch 12, Miscellaneous (g)(i)", computation: flat, included_amount: 294 }
+  - { code: S12.LETTER_RECEIVED.PER_FOLIO, schedule: 12, label: "Receiving/perusing — per folio", rule_reference: "Sch 12, Miscellaneous (g)(ii)", computation: per_folio, unit_label: folio, params: { per_unit: 176 } }
+  - { code: S12.DRAWING,              schedule: 12, label: "Drawing documents associated with applications/proceedings — per folio", rule_reference: "Sch 12, Miscellaneous (h)(i)", computation: per_folio, unit_label: folio, params: { per_unit: 470 } }
+  - { code: S12.DRAWING.FILE_COPY,    schedule: 12, label: "File copies — per folio", rule_reference: "Sch 12, Miscellaneous (h)(ii)", computation: per_folio, unit_label: folio, params: { per_unit: 46 } }
+  - { code: S12.PERUSING,             schedule: 12, label: "Perusing documents — charged as Sch 6 item 8(a)", rule_reference: "Sch 12, Miscellaneous (i)", computation: pointer, params: { target: "S6.PERUSAL" } }
+  - { code: S12.ATTEND.QUARTER_HOUR,  schedule: 12, label: "Other necessary attendances incl. minutes of evidence — per quarter hour or part", rule_reference: "Sch 12, Miscellaneous (j)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_127 } }
+  - { code: S12.EXT_TIME,             schedule: 12, label: "Applying to MD for extension of time", rule_reference: "Sch 12, Miscellaneous (k)", computation: flat, included_amount: 4_200 }

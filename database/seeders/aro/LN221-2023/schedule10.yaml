@@ -1,0 +1,91 @@
+# Schedule 10 — probate and administration. Part B = A × 1.5 in contested
+# matters (mark items contentious).
+#
+# NOTE (I-9): item 1(a)'s fixed fees for gross estate ≤ 1,000,000 are absent
+# from both the Kenya Law PDF and web text. The (0–1M] band is seeded as 5%
+# provisionally — replace with the fixed brackets once the Gazette/original
+# enactment is transcribed.
+
+items:
+  - code: S10.GRANT.UNCONTESTED
+    schedule: 10
+    label: "Grant of probate / letters of administration, uncontested"
+    rule_reference: "Sch 10, item 1(a)"
+    basis_type: gross_estate
+    computation: tiered
+    is_instruction_fee: true
+    applies_cost_basis: contentious
+    params: { provisional: "bands ≤1M are 5% pending transcription of the fixed brackets (I-9)" }
+    bands:
+      - { lower: 0,         upper: 1_000_000, rate: "0.05" }
+      - { lower: 1_000_000, upper: null,      rate: "0.01" }
+
+  - code: S10.GRANT.CONTESTED
+    schedule: 10
+    label: "Grant or re-sealing where contested — not less than twice item 1(a)/(b)"
+    rule_reference: "Sch 10, item 1(d)"
+    basis_type: gross_estate
+    computation: tiered
+    is_instruction_fee: true
+    applies_cost_basis: contentious
+    params: { provisional: "2× seeded as doubled rates; bands ≤1M pending (I-9); floor — higher sums allowed" }
+    bands:
+      - { lower: 0,         upper: 1_000_000, rate: "0.10" }
+      - { lower: 1_000_000, upper: null,      rate: "0.02" }
+
+  - code: S10.RESEAL.CONTESTED
+    schedule: 10
+    label: "Re-sealing a grant, contested — four-fifths of item 1(a)"
+    rule_reference: "Sch 10, item 1(b)"
+    basis_type: gross_estate
+    computation: tiered
+    is_instruction_fee: true
+    applies_cost_basis: contentious
+    params: { provisional: "0.8× seeded as scaled rates; bands ≤1M pending (I-9)" }
+    bands:
+      - { lower: 0,         upper: 1_000_000, rate: "0.04" }
+      - { lower: 1_000_000, upper: null,      rate: "0.008" }
+
+  - { code: S10.CONFIRMATION.UNCONTESTED, schedule: 10, label: "Confirmation of grant, uncontested", rule_reference: "Sch 10, item 1(c)(i)", computation: flat, included_amount: 15_000, applies_cost_basis: contentious }
+  - { code: S10.CONFIRMATION.CONTESTED,   schedule: 10, label: "Confirmation of grant, contested", rule_reference: "Sch 10, item 1(c)(ii)", computation: discretionary_floor, included_amount: 30_000, applies_cost_basis: contentious }
+  - { code: S10.CAVEAT,                   schedule: 10, label: "Lodge caveat or renunciation", rule_reference: "Sch 10, item 1(e)", computation: flat, included_amount: 10_000, applies_cost_basis: contentious }
+  - { code: S10.OBJECTION,                schedule: 10, label: "Objection to grant, citation or other proceedings not provided for", rule_reference: "Sch 10, item 1(f)", computation: discretionary_floor, included_amount: 10_000, applies_cost_basis: contentious }
+
+  # I-10: literal text is "2,103 per 20,000 of net estate × number of entries"
+  # — the plan's worked case (400,000 × 5 entries → 52,575) implies a
+  # different reading; reconcile before relying on this head.
+  - code: S10.INVENTORY
+    schedule: 10
+    label: "Render inventory or account incl. estate duty affidavit — per 20,000 of net estate × entries"
+    rule_reference: "Sch 10, item 1(g)"
+    basis_type: net_estate
+    computation: per_unit_bands
+    unit_label: entry
+    params:
+      unit_size: 20_000
+      half_unit_threshold: 0   # any part of 20,000 counts as a full unit
+      floor: 3_000
+      unit_bands:
+        - { upper_units: null, per_unit: 2_103 }
+
+  - { code: S10.DRAWING.FORM,              schedule: 10, label: "Drawing each prescribed form or document", rule_reference: "Sch 10, item 2(a)", computation: flat, included_amount: 1_200, applies_cost_basis: contentious }
+  - { code: S10.DRAWING.FORM.PER_FOLIO,    schedule: 10, label: "Drawing prescribed form — alternative per folio", rule_reference: "Sch 10, item 2(a)", computation: per_folio, unit_label: folio, params: { per_unit: 235 }, applies_cost_basis: contentious }
+  - { code: S10.DRAWING.INVENTORY,         schedule: 10, label: "Drawing inventory/account not in prescribed form", rule_reference: "Sch 10, item 2(b)", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
+  - { code: S10.DRAWING.INVENTORY.PER_ENTRY, schedule: 10, label: "Drawing inventory — alternative per entry", rule_reference: "Sch 10, item 2(b)", computation: per_unit, unit_label: entry, params: { per_unit: 25 }, applies_cost_basis: contentious }
+  - { code: S10.WILL,                      schedule: 10, label: "Drawing will — as agreed, minimum", rule_reference: "Sch 10, item 2(c)", computation: discretionary_floor, included_amount: 30_000 }
+  - { code: S10.PERUSING,                  schedule: 10, label: "Perusing, per folio", rule_reference: "Sch 10, item 4", computation: per_folio, unit_label: folio, params: { per_unit: 42 }, applies_cost_basis: contentious }
+  - { code: S10.PERUSING.WILL,             schedule: 10, label: "Perusing wills and codicils", rule_reference: "Sch 10, item 4(a)", computation: flat, included_amount: 1_200, applies_cost_basis: contentious }
+  - { code: S10.PERUSING.WILL.PER_FOLIO,   schedule: 10, label: "Perusing wills — alternative per folio", rule_reference: "Sch 10, item 4(a)", computation: per_folio, unit_label: folio, params: { per_unit: 100 }, applies_cost_basis: contentious }
+  - { code: S10.PERUSING.OTHER,            schedule: 10, label: "Perusing other prescribed forms/documents", rule_reference: "Sch 10, item 4(b)", computation: flat, included_amount: 600, applies_cost_basis: contentious }
+  - { code: S10.PERUSING.OTHER.PER_FOLIO,  schedule: 10, label: "Perusing other documents — alternative per folio", rule_reference: "Sch 10, item 4(b)", computation: per_folio, unit_label: folio, params: { per_unit: 60 }, applies_cost_basis: contentious }
+  - { code: S10.LETTER,                    schedule: 10, label: "Letter dispatched", rule_reference: "Sch 10, item 6(a)", computation: flat, included_amount: 300, applies_cost_basis: contentious }
+  - { code: S10.LETTER.PER_FOLIO,          schedule: 10, label: "Letter dispatched — alternative per folio", rule_reference: "Sch 10, item 6(a)", computation: per_folio, unit_label: folio, params: { per_unit: 200 }, applies_cost_basis: contentious }
+  - { code: S10.LETTER_RECEIVED,           schedule: 10, label: "Letter received and perused", rule_reference: "Sch 10, item 6(b)", computation: flat, included_amount: 200, applies_cost_basis: contentious }
+  - { code: S10.LETTER_RECEIVED.PER_FOLIO, schedule: 10, label: "Letter received — alternative per folio", rule_reference: "Sch 10, item 6(b)", computation: per_folio, unit_label: folio, params: { per_unit: 60 }, applies_cost_basis: contentious }
+  - { code: S10.ATTENDANCE,                schedule: 10, label: "Attendances, ordinary cases — per 15 min or part", rule_reference: "Sch 10, item 6(i)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 700 }, applies_cost_basis: contentious }
+  - { code: S10.PHONE,                     schedule: 10, label: "Routine telephone calls — per 3 min or part", rule_reference: "Sch 10, item 6(ii)", computation: per_unit, unit_label: "3 minutes", params: { per_unit: 125 }, applies_cost_basis: contentious }
+
+  # Item 7(b) — executor's/administrator's commission caps.
+  - { code: S10.ADMIN.COMMISSION.CAPITAL,  schedule: 10, label: "Commission on net capital — cap per annum", rule_reference: "Sch 10, item 7(b)(i)", basis_type: net_capital, computation: bracket_rate, params: { is_cap: true }, bands: [ { lower: 0, upper: null, rate: "0.025" } ] }
+  - { code: S10.ADMIN.COMMISSION.INCOME,   schedule: 10, label: "Commission on income — cap", rule_reference: "Sch 10, item 7(b)(ii)", basis_type: income, computation: bracket_rate, params: { is_cap: true }, bands: [ { lower: 0, upper: null, rate: "0.03" } ] }
+  - { code: S10.ADMIN.COMMISSION.REALISED, schedule: 10, label: "Commission on realised/invested capital — cap", rule_reference: "Sch 10, item 7(b)(iii)", basis_type: capital, computation: bracket_rate, params: { is_cap: true }, bands: [ { lower: 0, upper: null, rate: "0.015" } ] }

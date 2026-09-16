@@ -1,0 +1,43 @@
+# Schedule 7 — subordinate courts. Part B = A × 1.5. Lower scale where no
+# defence or other denial of liability filed; higher scale otherwise.
+# Posture multipliers apply as in Schedule 6.
+
+items:
+  - code: S7.INSTR
+    schedule: 7
+    label: "Instruction fee — suits for recovery of money/land"
+    rule_reference: "Sch 7, item 1 + scale Note"
+    basis_type: sum_sued
+    computation: tiered
+    scale_variant: lower_higher
+    is_instruction_fee: true
+    applies_cost_basis: contentious
+    bands:
+      - { scale: lower,  lower: 0,         upper: 50_000,    fixed: 10_000 }
+      - { scale: lower,  lower: 50_000,    upper: 100_000,   fixed: 15_000 }
+      - { scale: lower,  lower: 100_000,   upper: 200_000,   fixed: 30_000 }
+      - { scale: lower,  lower: 200_000,   upper: 500_000,   fixed: 45_000 }
+      - { scale: lower,  lower: 500_000,   upper: 1_000_000, fixed: 65_000 }
+      - { scale: lower,  lower: 1_000_000, upper: 2_000_000, fixed: 90_000 }
+      - { scale: lower,  lower: 2_000_000, upper: null,      rate: "0.025" }
+      - { scale: higher, lower: 0,         upper: 50_000,    fixed: 15_000 }
+      - { scale: higher, lower: 50_000,    upper: 100_000,   fixed: 30_000 }
+      - { scale: higher, lower: 100_000,   upper: 200_000,   fixed: 40_000 }
+      - { scale: higher, lower: 200_000,   upper: 500_000,   fixed: 65_000 }
+      - { scale: higher, lower: 500_000,   upper: 1_000_000, fixed: 90_000 }
+      - { scale: higher, lower: 1_000_000, upper: 2_000_000, fixed: 120_000 }
+      - { scale: higher, lower: 2_000_000, upper: null,      rate: "0.025" }
+
+  - { code: S7.INSTR.NO_SUM.UNDEFENDED,    schedule: 7, label: "Instruction fee — no sum sued, undefended", rule_reference: "Sch 7, item 2", computation: discretionary_floor, included_amount: 20_000, is_instruction_fee: true, applies_cost_basis: contentious }
+  - { code: S7.INSTR.ELECTION_PETITION,    schedule: 7, label: "Instruction fee — election petition", rule_reference: "Sch 7, item 3", computation: discretionary_floor, included_amount: 100_000, is_instruction_fee: true, applies_cost_basis: contentious }
+  - { code: S7.INSTR.DIVORCE.UNDEFENDED,   schedule: 7, label: "Instruction fee — divorce, undefended", rule_reference: "Sch 7, item 4(a)(i)", computation: flat, included_amount: 10_000, is_instruction_fee: true, applies_cost_basis: contentious }
+  - { code: S7.INSTR.DIVORCE.DEFENDED,     schedule: 7, label: "Instruction fee — divorce, defended", rule_reference: "Sch 7, item 4(a)(ii)", computation: flat, included_amount: 18_000, is_instruction_fee: true, applies_cost_basis: contentious }
+  - { code: S7.APPLICATION,                schedule: 7, label: "Application", rule_reference: "Sch 7, item 5", computation: flat, included_amount: 3_000, applies_cost_basis: contentious }
+  - { code: S7.ATTEND.MAGISTRATE,          schedule: 7, label: "Attendance on magistrate", rule_reference: "Sch 7, item 6", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
+  - { code: S7.HEARING.FIRST_DAY,          schedule: 7, label: "Hearing — first whole day", rule_reference: "Sch 7, item 7(i)", computation: flat, included_amount: 5_000, applies_cost_basis: contentious }
+  - { code: S7.HEARING.SUBSEQUENT_PART,    schedule: 7, label: "Hearing — each part of day after the first", rule_reference: "Sch 7, item 7(ii)", computation: per_unit, unit_label: "part of day", params: { per_unit: 2_100 }, applies_cost_basis: contentious }
+  - { code: S7.ADJOURNMENT,                schedule: 7, label: "Costs of adjournment where awarded", rule_reference: "Sch 7, item 8", computation: flat, included_amount: 2_100, applies_cost_basis: contentious }
+  - { code: S7.ADR.HALF_HOUR,              schedule: 7, label: "ADR attendance — half hour", rule_reference: "Sch 7, item 9", computation: flat, included_amount: 1_000, applies_cost_basis: contentious }
+  - { code: S7.ADR.HOUR,                   schedule: 7, label: "ADR attendance — hour", rule_reference: "Sch 7, item 9", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
+  - { code: S7.SERVICE.LOCAL,              schedule: 7, label: "Service within 3 km", rule_reference: "Sch 7, item 10(i)", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
+  - { code: S7.AFFIDAVIT,                  schedule: 7, label: "Drawing and filing affidavit", rule_reference: "Sch 7, item 11", computation: flat, included_amount: 1_000, applies_cost_basis: contentious }

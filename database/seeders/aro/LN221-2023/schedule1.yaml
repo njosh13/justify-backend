@@ -1,0 +1,83 @@
+# Schedule 1 — sales, purchases, securities, debentures (non-contentious)
+# Money fields in whole KES.
+
+items:
+  - code: S1.SALE
+    schedule: 1
+    label: "Sale or purchase of land — vendor's or purchaser's advocate"
+    rule_reference: "Sch 1, First Scale, para 1"
+    basis_type: consideration
+    computation: tiered
+    bands:
+      - { lower: 0,           upper: 5_000_000,     rate: "0.02",   floor: 35_000 }
+      - { lower: 5_000_000,   upper: 100_000_000,   rate: "0.015" }
+      - { lower: 100_000_000, upper: 250_000_000,   rate: "0.0125" }
+      - { lower: 250_000_000, upper: 1_000_000_000, rate: "0.01" }
+      - { lower: 1_000_000_000, upper: null,        rate: "0.001" }
+
+  - code: S1.SECURITY.GRANTEE
+    schedule: 1
+    label: "Mortgage or charge — grantee's advocate (creation)"
+    rule_reference: "Sch 1, Second Scale, para 2(b)"
+    basis_type: amount_secured
+    computation: tiered
+    bands:
+      - { lower: 0,           upper: 2_500_000,     rate: "0.02",   floor: 28_000 }
+      - { lower: 2_500_000,   upper: 5_000_000,     rate: "0.0175" }
+      - { lower: 5_000_000,   upper: 100_000_000,   rate: "0.01" }
+      - { lower: 100_000_000, upper: 250_000_000,   rate: "0.0075" }
+      - { lower: 250_000_000, upper: 1_000_000_000, rate: "0.0015" }
+      - { lower: 1_000_000_000, upper: null,        rate: "0.001" }
+
+  - code: S1.NEGOTIATION
+    schedule: 1
+    label: "Negotiating a sale/purchase where no agreement results or instructions not proceeded with"
+    rule_reference: "Sch 1, Third Scale, para 3"
+    basis_type: consideration
+    computation: per_unit_bands
+    params:
+      unit_size: 2_000            # one unit per KES 2,000 of consideration
+      half_unit_threshold: 1_000  # remainder ≤1,000 counts as half a unit
+      unit_bands:
+        - { upper_units: 100, per_unit: 112 }
+        - { upper_units: 300, per_unit: 52 }
+        - { upper_units: null, per_unit: 30 }
+
+  - code: S1.DEBENTURE.NO_SECURITY
+    schedule: 1
+    label: "Debenture containing no security — charged under Schedule 5"
+    rule_reference: "Sch 1, Note 2"
+    computation: pointer
+    params: { target: "Schedule 5" }
+
+  - code: S1.TRANSFER_OF_MORTGAGE.TITLE_INVESTIGATED
+    schedule: 1
+    label: "Transfer of mortgage where title previously investigated — Schedule 5"
+    rule_reference: "Sch 1, para 41"
+    computation: pointer
+    params: { target: "Schedule 5" }
+
+modifiers:
+  # Order: multiplies first (sort 20), plain floors (80), floor_ratio_of_base
+  # (85), caps (90) — I-4.
+  - { code: S1.VENDOR_NO_AGREEMENT,   label: "Vendor's advocate did not prepare the agreement", rule_reference: "Sch 1 para 18(a) proviso", op: multiply, value: "0.66666666666666666667", applies_to: [S1.SALE], condition_key: vendor_no_agreement, sort_order: 20 }
+  - { code: S1.GRANTOR,             label: "Grantor's advocate — creation of security", rule_reference: "Sch 1 Second Scale 2(d)", op: multiply, value: "0.5", applies_to: [S1.SECURITY.GRANTEE], condition_key: acting_for_grantor, sort_order: 20 }
+  - { code: S1.DISCHARGE.UNDERTAKING, label: "Grantee's advocate — discharge with undertaking", rule_reference: "Sch 1 Second Scale 2(c)(i)", op: multiply, value: "0.25", applies_to: [S1.SECURITY.GRANTEE], condition_key: discharge_with_undertaking, sort_order: 20 }
+  - { code: S1.DISCHARGE.UNDERTAKING.FLOOR, label: "Minimum — discharge with undertaking", rule_reference: "Sch 1 Second Scale 2(c)(i)", op: floor, value: 15_000, applies_to: [S1.SECURITY.GRANTEE], condition_key: discharge_with_undertaking, sort_order: 80 }
+  - { code: S1.DISCHARGE.NO_UNDERTAKING, label: "Grantee's advocate — discharge without undertaking", rule_reference: "Sch 1 Second Scale 2(c)(ii)", op: multiply, value: "0.15", applies_to: [S1.SECURITY.GRANTEE], condition_key: discharge_without_undertaking, sort_order: 20 }
+  - { code: S1.DISCHARGE.NO_UNDERTAKING.FLOOR, label: "Minimum — discharge without undertaking", rule_reference: "Sch 1 Second Scale 2(c)(ii)", op: floor, value: 10_000, applies_to: [S1.SECURITY.GRANTEE], condition_key: discharge_without_undertaking, sort_order: 80 }
+  - { code: S1.GRANTOR.DISCHARGE,     label: "Grantor's advocate — discharge of security", rule_reference: "Sch 1 Second Scale 2(e)", op: multiply, value: "0.25", applies_to: [S1.SECURITY.GRANTEE], condition_key: grantor_discharge, sort_order: 20 }
+  - { code: S1.GRANTOR.DISCHARGE.FLOOR, label: "Minimum — grantor's discharge", rule_reference: "Sch 1 Second Scale 2(e)", op: floor, value: 15_000, applies_to: [S1.SECURITY.GRANTEE], condition_key: grantor_discharge, sort_order: 80 }
+  - { code: S1.EQUITABLE,           label: "Equitable mortgage by deposit of documents — creation", rule_reference: "Sch 1 Second Scale, Note 1(a)", op: multiply, value: "0.5", applies_to: [S1.SECURITY.GRANTEE], condition_key: equitable_mortgage, sort_order: 20 }
+  - { code: S1.EQUITABLE.FLOOR,     label: "Minimum — equitable mortgage creation", rule_reference: "Sch 1 Second Scale, Note 1(a)", op: floor, value: 12_500, applies_to: [S1.SECURITY.GRANTEE], condition_key: equitable_mortgage, sort_order: 80 }
+  - { code: S1.EQUITABLE.DISCHARGE, label: "Discharge of equitable mortgage", rule_reference: "Sch 1 Second Scale, Note 1(b)", op: multiply, value: "0.15", applies_to: [S1.SECURITY.GRANTEE], condition_key: equitable_discharge, sort_order: 20 }
+  - { code: S1.EQUITABLE.DISCHARGE.FLOOR, label: "Minimum — equitable discharge", rule_reference: "Sch 1 Second Scale, Note 1(b)", op: floor, value: 10_000, applies_to: [S1.SECURITY.GRANTEE], condition_key: equitable_discharge, sort_order: 80 }
+  - { code: S1.EQUITABLE.DISCHARGE.CAP, label: "Maximum — equitable discharge", rule_reference: "Sch 1 Second Scale, Note 1(b)", op: cap, value: 42_000, applies_to: [S1.SECURITY.GRANTEE], condition_key: equitable_discharge, sort_order: 90 }
+  - { code: S1.BOTH_SIDES,          label: "Same advocate for grantee and grantor — grantee fee + 25%", rule_reference: "Sch 1 Second Scale, Note 3", op: multiply, value: "1.25", applies_to: [S1.SECURITY.GRANTEE], condition_key: same_advocate_both_sides, sort_order: 20 }
+  - { code: S1.ADDITIONAL_SECURITY.FIRST, label: "Second security to same grantee — separate line", rule_reference: "Sch 1 Second Scale, Note 5", op: multiply, value: "0.25", applies_to: [S1.SECURITY.GRANTEE], condition_key: additional_security, sort_order: 20 }
+  - { code: S1.ADDITIONAL_SECURITY.SUBSEQUENT, label: "Third and further securities to same grantee — separate line", rule_reference: "Sch 1 Second Scale, Note 5", op: multiply, value: "0.10", applies_to: [S1.SECURITY.GRANTEE], condition_key: additional_security_subsequent, sort_order: 20 }
+  - { code: S1.ADDITIONAL_PROPERTY.SECOND, label: "Second property comprised in one charge — separate line", rule_reference: "Sch 1 Second Scale, Note 6", op: multiply, value: "0.10", applies_to: [S1.SECURITY.GRANTEE], condition_key: additional_property, sort_order: 20 }
+  - { code: S1.ADDITIONAL_PROPERTY.SUBSEQUENT, label: "Third and further properties in one charge — separate line", rule_reference: "Sch 1 Second Scale, Note 6", op: multiply, value: "0.05", applies_to: [S1.SECURITY.GRANTEE], condition_key: additional_property_subsequent, sort_order: 20 }
+  - { code: S1.ADDITIONAL_GRANTOR,  label: "Each additional grantor — separate line, total divided equally", rule_reference: "Sch 1 Second Scale, Note 7", op: multiply, value: "0.05", applies_to: [S1.SECURITY.GRANTEE], condition_key: additional_grantor, sort_order: 20 }
+  - { code: S1.PRINTED_FORM,        label: "Building society printed form of security", rule_reference: "Sch 1, para 34 (verify — §14.4)", op: multiply, value: "0.66666666666666666667", applies_to: [S1.SECURITY.GRANTEE], condition_key: printed_form, sort_order: 20 }
+  - { code: S1.PRINTED_FORM.HALF_FLOOR, label: "Combined reductions may not exceed one-half of scale fee", rule_reference: "Sch 1, para 34 (verify — §14.4)", op: floor_ratio_of_base, value: "0.5", applies_to: [S1.SECURITY.GRANTEE], condition_key: printed_form, sort_order: 85 }

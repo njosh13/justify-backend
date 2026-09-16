@@ -1,0 +1,68 @@
+# Schedule 4 — trade marks (taxing officer: Registrar of Trade Marks, para 10)
+# Transcribed from the Kenya Law text 2026-09-16; all flat fees unless noted.
+
+items:
+  # 1. Applications
+  - { code: S4.TM.REGISTER.FIRST,      schedule: 4, label: "Instructions to register one trade mark in one class", rule_reference: "Sch 4 item 1(a)", computation: flat, included_amount: 42_000 }
+  - { code: S4.TM.REGISTER.SUBSEQUENT, schedule: 4, label: "Second and further trade marks, same proprietor, filed simultaneously (per TM, one class)", rule_reference: "Sch 4 item 1(b)", computation: flat, included_amount: 29_000 }
+  - { code: S4.PRIORITY.FILING,        schedule: 4, label: "Filing priority application", rule_reference: "Sch 4 item 1(c)", computation: flat, included_amount: 4_000 }
+
+  # 2. Registered users
+  - { code: S4.REG_USER.FIRST,               schedule: 4, label: "Application to enter registered user — first single TM", rule_reference: "Sch 4 item 2(a)(i)", computation: flat, included_amount: 40_000 }
+  - { code: S4.REG_USER.SECOND,              schedule: 4, label: "Registered user — second TM", rule_reference: "Sch 4 item 2(a)(ii)", computation: flat, included_amount: 18_900 }
+  - { code: S4.REG_USER.THIRD_SIMULTANEOUS,  schedule: 4, label: "Registered user — third and each subsequent TM filed simultaneously", rule_reference: "Sch 4 item 2(a)(iii)", computation: flat, included_amount: 2_600 }
+  - { code: S4.REG_USER.FOURTH_SIMULTANEOUS, schedule: 4, label: "Registered user — fourth and each subsequent TM filed simultaneously", rule_reference: "Sch 4 item 2(a)(iv)", computation: flat, included_amount: 5_040 }
+  - { code: S4.REG_USER.DRAW_STATEMENT,      schedule: 4, label: "Drawing statement of case, statutory declaration and application", rule_reference: "Sch 4 item 2(b)", computation: discretionary_floor, included_amount: 9_000 }
+  - { code: S4.REG_USER.DRAW_AGREEMENT,      schedule: 4, label: "Drawing registered user agreement", rule_reference: "Sch 4 item 2(c)", computation: discretionary_floor, included_amount: 12_000 }
+  - { code: S4.REG_USER.CANCEL.FIRST,               schedule: 4, label: "Application under s.31(8)(b) to cancel registered user — first/single TM", rule_reference: "Sch 4 item 2(d)(i)", computation: flat, included_amount: 25_000 }
+  - { code: S4.REG_USER.CANCEL.SECOND,              schedule: 4, label: "Cancel registered user — second TM", rule_reference: "Sch 4 item 2(d)(ii)", computation: flat, included_amount: 15_000 }
+  - { code: S4.REG_USER.CANCEL.THIRD_SIMULTANEOUS,  schedule: 4, label: "Cancel registered user — third+ TM filed simultaneously", rule_reference: "Sch 4 item 2(d)(iii)", computation: flat, included_amount: 10_000 }
+  - { code: S4.REG_USER.CANCEL.FOURTH_SIMULTANEOUS, schedule: 4, label: "Cancel registered user — fourth+ TM filed simultaneously", rule_reference: "Sch 4 item 2(d)(iv)", computation: flat, included_amount: 5_040 }
+  - { code: S4.REG_USER.CANCEL.DRAW,                schedule: 4, label: "Drawing cancellation application and statement of grounds", rule_reference: "Sch 4 item 2(e)", computation: discretionary_floor, included_amount: 12_500 }
+  - { code: S4.REG_USER.CANCEL.SUBSEQUENT_SAME,     schedule: 4, label: "Each subsequent TM in same cancellation application, same grounds", rule_reference: "Sch 4 item 2(f)", computation: flat, included_amount: 5_040 }
+  - { code: S4.REG_USER.VARY,                       schedule: 4, label: "Application to vary terms of appointment of registered user", rule_reference: "Sch 4 item 2(g)", computation: flat, included_amount: 6_000 }
+
+  # 3. Assignments
+  - { code: S4.ASSIGN.FIRST,              schedule: 4, label: "Application to register subsequent proprietor — first TM", rule_reference: "Sch 4 item 3(a)(i)", computation: flat, included_amount: 25_000 }
+  - { code: S4.ASSIGN.SECOND,             schedule: 4, label: "Subsequent proprietor — second TM", rule_reference: "Sch 4 item 3(a)(ii)", computation: flat, included_amount: 15_000 }
+  - { code: S4.ASSIGN.SUBSEQUENT,         schedule: 4, label: "Subsequent proprietor — each subsequent TM", rule_reference: "Sch 4 item 3(a)(iii)", computation: flat, included_amount: 12_000 }
+  - { code: S4.ASSIGN.ADVERTISE.FIRST,    schedule: 4, label: "Directions to advertise assignment without goodwill — one TM", rule_reference: "Sch 4 item 3(b)(i)", computation: flat, included_amount: 25_000 }
+  - { code: S4.ASSIGN.ADVERTISE.SUBSEQUENT, schedule: 4, label: "Advertise assignment — every other TM, same devolution, simultaneous", rule_reference: "Sch 4 item 3(b)(ii)", computation: flat, included_amount: 20_000 }
+  - { code: S4.ASSIGN.EXT_TIME,           schedule: 4, label: "Extension of time to apply for directions to advertise assignment", rule_reference: "Sch 4 item 3(c)", computation: flat, included_amount: 12_600 }
+
+  # 4. Renewals
+  - { code: S4.RENEW.FIRST,      schedule: 4, label: "Renew registration of one TM in one class", rule_reference: "Sch 4 item 4(a)", computation: flat, included_amount: 25_000 }
+  - { code: S4.RENEW.SUBSEQUENT, schedule: 4, label: "Renew second and further TMs of same proprietor simultaneously", rule_reference: "Sch 4 item 4(b)", computation: flat, included_amount: 12_600 }
+  - { code: S4.RESTORE,          schedule: 4, label: "Restore registration of one TM (rule 68 Trade Marks Rules)", rule_reference: "Sch 4 item 4(c)", computation: flat, included_amount: 15_000 }
+
+  # 5/6. Change of name / address
+  - { code: S4.CHANGE_NAME.FIRST,         schedule: 4, label: "Register change of name — one TM, one class", rule_reference: "Sch 4 item 5(a)", computation: flat, included_amount: 10_000 }
+  - { code: S4.CHANGE_NAME.SUBSEQUENT,    schedule: 4, label: "Change of name — second and further TMs simultaneously", rule_reference: "Sch 4 item 5(b)", computation: flat, included_amount: 10_800 }
+  - { code: S4.CHANGE_ADDRESS.FIRST,      schedule: 4, label: "Register change of address — one TM, one class", rule_reference: "Sch 4 item 6(a)", computation: flat, included_amount: 10_000 }
+  - { code: S4.CHANGE_ADDRESS.SUBSEQUENT, schedule: 4, label: "Change of address — second and further TMs simultaneously", rule_reference: "Sch 4 item 6(b)", computation: flat, included_amount: 5_040 }
+
+  # 8. Searches and copies (no item 7 in published table)
+  - { code: S4.SEARCH.ADVOCATE,         schedule: 4, label: "Search registered TM at registry and advise — by advocate", rule_reference: "Sch 4 item 8(a)(i)", computation: flat, included_amount: 5_000 }
+  - { code: S4.SEARCH.UNQUALIFIED,      schedule: 4, label: "Search registered TM — unqualified employee", rule_reference: "Sch 4 item 8(a)(ii)", computation: flat, included_amount: 2_000 }
+  - { code: S4.PRELIM_ADVICE,           schedule: 4, label: "Registrar's preliminary advice, Form T.M. 27/28, incl. drawing form", rule_reference: "Sch 4 item 8(b)", computation: flat, included_amount: 5_000 }
+  - { code: S4.CERTIFIED_COPY.FIRST,    schedule: 4, label: "Registry certified copy — one copy of a document", rule_reference: "Sch 4 item 8(c)(i)", computation: flat, included_amount: 2_940 }
+  - { code: S4.CERTIFIED_COPY.SUBSEQUENT, schedule: 4, label: "Certified copies — second and additional, same document, simultaneous", rule_reference: "Sch 4 item 8(c)(ii)", computation: flat, included_amount: 882 }
+
+  # 9. Opposition and rectification
+  - { code: S4.OPPOSITION,              schedule: 4, label: "Enter or defend opposition / rectification before the Registrar", rule_reference: "Sch 4 item 9(a)", computation: discretionary_floor, included_amount: 210_000 }
+  - { code: S4.OPPOSITION.ATTEND.DAY,   schedule: 4, label: "Attendance before Registrar in opposition/rectification — whole day", rule_reference: "Sch 4 item 9(b)", computation: flat, included_amount: 16_464, unit_label: day }
+  - { code: S4.OPPOSITION.ATTEND.HALF,  schedule: 4, label: "Attendance before Registrar — half-day or part", rule_reference: "Sch 4 item 9(c)", computation: flat, included_amount: 8_232 }
+  - { code: S4.OPPOSITION.INTERLOCUTORY, schedule: 4, label: "Interlocutory matters, judgment etc. — per 15 min or part", rule_reference: "Sch 4 item 9(d)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_127 } }
+  - { code: S4.OPPOSITION.TAXATION,     schedule: 4, label: "On taxation of bill of costs — per 15 min or part", rule_reference: "Sch 4 item 9(e)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_127 } }
+
+  # 10. Miscellaneous
+  - { code: S4.ADVICE,                 schedule: 4, label: "Advice on registrability of a mark or point of law or practice", rule_reference: "Sch 4 item 10(a)", computation: discretionary_floor, included_amount: 7_500 }
+  - { code: S4.ATTEND.ARGUMENT_15MIN,  schedule: 4, label: "Attendance on Registrar — argument, per 15 min or part", rule_reference: "Sch 4 item 10(b)(i)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 2_100 } }
+  - { code: S4.ATTEND.FILING_15MIN,    schedule: 4, label: "Attendance on Registrar — filing papers, per 15 min or part", rule_reference: "Sch 4 item 10(b)(ii)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 588 } }
+  - { code: S4.LETTER,                 schedule: 4, label: "Letter dispatched (correspondence charged separately)", rule_reference: "Sch 4 item 10(c)(i)", computation: flat, included_amount: 294 }
+  - { code: S4.LETTER.PER_FOLIO,       schedule: 4, label: "Letter dispatched — alternative per folio", rule_reference: "Sch 4 item 10(c)(ii)", computation: per_folio, unit_label: folio, params: { per_unit: 176 } }
+  - { code: S4.LETTER_RECEIVED,        schedule: 4, label: "Letters received and perused", rule_reference: "Sch 4 item 10(d)(i)", computation: flat, included_amount: 117 }
+  - { code: S4.LETTER_RECEIVED.PER_FOLIO, schedule: 4, label: "Letters received — alternative per folio", rule_reference: "Sch 4 item 10(d)(ii)", computation: per_folio, unit_label: folio, params: { per_unit: 70 } }
+  - { code: S4.PERUSING,               schedule: 4, label: "Perusing documents — charged as Sch 6 item 8(a)", rule_reference: "Sch 4 item 10(e)", computation: pointer, params: { target: "S6 perusals (item 8(a))" } }
+  - { code: S4.ATTEND.QUARTER_HOUR,    schedule: 4, label: "All other necessary attendances — per quarter hour or part", rule_reference: "Sch 4 item 10(f)", computation: per_unit, unit_label: "15 minutes", params: { per_unit: 1_127 } }
+  - { code: S4.EXT_TIME,               schedule: 4, label: "Applying to Registrar for extension of time", rule_reference: "Sch 4 item 10(g)", computation: flat, included_amount: 1_000 }

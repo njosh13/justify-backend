@@ -1,0 +1,37 @@
+# Schedule 11 — tribunals other than Sch 8/9. Part B = A × 1.5.
+# Item 8(b): lower scale = the (a) fees reduced by 50% — seeded explicitly.
+
+items:
+  - code: S11.INSTR
+    schedule: 11
+    label: "Instruction fee — value of subject-matter ascertainable"
+    rule_reference: "Sch 11, item 8(a),(b)"
+    basis_type: value
+    computation: tiered
+    scale_variant: lower_higher
+    is_instruction_fee: true
+    applies_cost_basis: contentious
+    bands:
+      - { scale: lower,  lower: 0,          upper: 50_000,     fixed: 8_820 }
+      - { scale: lower,  lower: 50_000,     upper: 100_000,    fixed: 11_760 }
+      - { scale: lower,  lower: 100_000,    upper: 200_000,    fixed: 17_640 }
+      - { scale: lower,  lower: 200_000,    upper: 500_000,    fixed: 29_400 }
+      - { scale: lower,  lower: 500_000,    upper: 1_000_000,  fixed: 50_000 }
+      - { scale: lower,  lower: 1_000_000,  upper: 20_000_000, rate: "0.005" }
+      - { scale: lower,  lower: 20_000_000, upper: 250_000_000, rate: "0.0025" }
+      - { scale: lower,  lower: 250_000_000, upper: null,      rate: "0.0005" }
+      - { scale: higher, lower: 0,          upper: 50_000,     fixed: 17_640 }
+      - { scale: higher, lower: 50_000,     upper: 100_000,    fixed: 23_520 }
+      - { scale: higher, lower: 100_000,    upper: 200_000,    fixed: 35_280 }
+      - { scale: higher, lower: 200_000,    upper: 500_000,    fixed: 58_800 }
+      - { scale: higher, lower: 500_000,    upper: 1_000_000,  fixed: 100_000 }
+      - { scale: higher, lower: 1_000_000,  upper: 20_000_000, rate: "0.01" }
+      - { scale: higher, lower: 20_000_000, upper: 250_000_000, rate: "0.005" }
+      - { scale: higher, lower: 250_000_000, upper: null,      rate: "0.001" }
+
+  - { code: S11.INSTR.NO_VALUE,           schedule: 11, label: "Instruction fee — value cannot be ascertained", rule_reference: "Sch 11, item 9", computation: discretionary_floor, included_amount: 35_280, is_instruction_fee: true, applies_cost_basis: contentious }
+  - { code: S11.ATTEND.TRIBUNAL,          schedule: 11, label: "Necessary attendance on Tribunal other than at hearing", rule_reference: "Sch 11, item 10(a)", computation: flat, included_amount: 500, applies_cost_basis: contentious }
+  - { code: S11.ATTEND.OFFICES,           schedule: 11, label: "Attendance at offices of the tribunal", rule_reference: "Sch 11, item 10(b)", computation: flat, included_amount: 500, applies_cost_basis: contentious }
+  - { code: S11.HEARING.SUBSEQUENT_DAY,   schedule: 11, label: "Hearing — each day after the first", rule_reference: "Sch 11, item 10(c)(i)", computation: per_unit, unit_label: day, params: { per_unit: 4_000 }, applies_cost_basis: contentious }
+  - { code: S11.HEARING.SUBSEQUENT_PART,  schedule: 11, label: "Hearing — each part of day after the first", rule_reference: "Sch 11, item 10(c)(ii)", computation: per_unit, unit_label: "part of day", params: { per_unit: 2_100 }, applies_cost_basis: contentious }
+  - { code: S11.ADJOURNMENT,              schedule: 11, label: "Costs of adjournment where awarded", rule_reference: "Sch 11, item 10(d)", computation: flat, included_amount: 1_200, applies_cost_basis: contentious }
