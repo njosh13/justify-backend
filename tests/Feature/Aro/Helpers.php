@@ -30,6 +30,7 @@ function fee(
     ?string $scale = null,
     ?Posture $posture = null,
     array $modifiers = [],
+    array $modifierAmounts = [],
     ?Certificates $certificates = null,
     CostBasis $costBasis = CostBasis::PartyParty,
 ): float {
@@ -43,6 +44,7 @@ function fee(
         scale: $scale,
         posture: $posture,
         modifierCodes: $modifiers,
+        modifierAmounts: collect($modifierAmounts)->map(fn ($v) => Money::of((string) $v, 'KES'))->all(),
         certificates: $certificates,
         costBasis: $costBasis,
     ));

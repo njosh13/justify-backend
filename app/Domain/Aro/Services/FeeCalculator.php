@@ -9,6 +9,7 @@ use App\Domain\Aro\Engine\Computed;
 use App\Domain\Aro\Engine\CostBasis;
 use App\Domain\Aro\Engine\CostBasisUplift;
 use App\Domain\Aro\Engine\FeeRequest;
+use App\Domain\Aro\Engine\Modifiers\ModifierOp;
 use App\Domain\Aro\Engine\Modifiers\ModifierPipeline;
 use App\Domain\Aro\Engine\Posture;
 use App\Domain\Aro\Engine\PostureMultiplier;
@@ -36,7 +37,19 @@ final class FeeCalculator
             ->whereBelongsTo($r->version, 'version')
             ->whereIn('code', $r->modifierCodes)
             ->get()
-            ->map(fn (AroModifier $m) => $m->toEngine())
+            ->map(function (AroModifier $m) use ($item, $r) {
+                if ($m->applies_to_codes !== null && ! in_array($item->code, $m->applies_to_codes, true)) {
+                    throw new \InvalidArgumentException("Modifier {$m->code} does not apply to {$item->code}");
+                }
+
+                $engine = $m->toEngine($r->modifierAmounts[$m->code] ?? null);
+
+                if ($engine->op === ModifierOp::Add && $engine->money()->isZero()) {
+                    throw new \InvalidArgumentException("Modifier {$m->code} requires an amount — pass modifierAmounts['{$m->code}']");
+                }
+
+                return $engine;
+            })
             ->all();
 
         $c = $this->pipeline->apply($base, $modifiers);

@@ -29,6 +29,12 @@ final class AroSeeder extends Seeder
         $dir = database_path('seeders/aro/LN221-2023');
 
         $meta = Yaml::parseFile("{$dir}/version.yaml");
+
+        $existing = AroVersion::where('code', $meta['code'])->first();
+        if ($existing?->status === 'published') {
+            throw new \RuntimeException("ARO version {$meta['code']} is published — published law is immutable; create a new version instead of reseeding in place");
+        }
+
         $version = AroVersion::updateOrCreate(
             ['code' => $meta['code']],
             [
@@ -41,7 +47,10 @@ final class AroSeeder extends Seeder
             ],
         );
 
-        foreach (glob("{$dir}/schedule*.yaml") ?: [] as $file) {
+        foreach (glob("{$dir}/*.yaml") ?: [] as $file) {
+            if (in_array(basename($file), ['version.yaml', 'interpretations.yaml'], true)) {
+                continue;
+            }
             $data = Yaml::parseFile($file);
 
             foreach ($data['items'] ?? [] as $row) {

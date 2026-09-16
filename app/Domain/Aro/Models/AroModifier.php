@@ -44,11 +44,11 @@ final class AroModifier extends Model
         return $this->belongsTo(AroVersion::class, 'aro_version_id');
     }
 
-    public function toEngine(): Modifier
+    public function toEngine(?Money $amountOverride = null): Modifier
     {
         $op = ModifierOp::from($this->op);
         $value = in_array($op, [ModifierOp::Add, ModifierOp::Floor, ModifierOp::Cap], true)
-            ? Money::ofMinor((int) $this->value, 'KES')
+            ? ($amountOverride ?? Money::ofMinor((int) $this->value, 'KES'))
             : $this->value;
 
         return new Modifier($this->code, $this->rule_reference, $op, $value, $this->sort_order);

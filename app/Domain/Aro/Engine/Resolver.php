@@ -21,7 +21,10 @@ final class Resolver
     {
         $rows = $item->bands->sortBy('sort');
         if ($item->scale_variant === 'lower_higher') {
-            $rows = $rows->where('scale', $scale ?? 'lower');
+            if (! in_array($scale, ['lower', 'higher'], true)) {
+                throw new \InvalidArgumentException("{$item->code} has a lower/higher scale — pass scale 'lower' or 'higher' explicitly");
+            }
+            $rows = $rows->where('scale', $scale);
         }
 
         $bands = $rows->map(fn (AroBand $b) => new Band(

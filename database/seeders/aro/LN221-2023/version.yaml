@@ -6,4 +6,6 @@ effective_from: "2022-12-31"
 effective_to: null
 source_url: "https://new.kenyalaw.org/akn/ke/act/ln/1962/64/eng@2022-12-31"
 source_sha256: "5bc55157dba087d4ade552666160c429acdbb5e816088e27b66b4d9ac5e29712"
-status: published
+# Draft until reviewed via the two-person publish gate (plan §10 admin); the
+# seeder refuses to overwrite a published version.
+status: draft
