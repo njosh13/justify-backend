@@ -72,6 +72,28 @@ final class Computed
         return $this->bound === FeeBound::Maximum;
     }
 
+    /**
+     * Snapshot for storage on a chargeable item or bill line, and for the UI.
+     *
+     * @return array{amount_cents:int, bound:string, ceiling_cents:int|null, provenance:string, steps:list<array{rule_ref:string, description:string, amount_cents:int, running_total_cents:int, replaces:bool}>}
+     */
+    public function toArray(): array
+    {
+        return [
+            'amount_cents' => $this->amount->getMinorAmount()->toInt(),
+            'bound' => $this->bound->value,
+            'ceiling_cents' => $this->ceiling?->getMinorAmount()->toInt(),
+            'provenance' => $this->provenance(),
+            'steps' => array_values(array_map(fn (Step $s) => [
+                'rule_ref' => $s->ruleRef,
+                'description' => $s->description,
+                'amount_cents' => $s->amount->getMinorAmount()->toInt(),
+                'running_total_cents' => $s->runningTotal->getMinorAmount()->toInt(),
+                'replaces' => $s->replaces,
+            ], $this->steps)),
+        ];
+    }
+
     public function provenance(): string
     {
         $text = implode('; ', array_map(

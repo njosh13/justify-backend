@@ -1,9 +1,9 @@
 import { usePage } from '@inertiajs/react';
-
-import AppLogoIcon from '@/components/app-logo-icon';
+import AppLogoIcon from './app-logo-icon';
+import type { Auth } from '@/types';
 
 export default function AppLogo() {
-    const { name } = usePage().props;
+    const { auth } = usePage<{ auth: Auth }>().props;
 
     return (
         <>
@@ -12,8 +12,13 @@ export default function AppLogo() {
             </div>
             <div className="ml-1 grid flex-1 text-left text-sm">
                 <span className="mb-0.5 truncate leading-tight font-semibold">
-                    {name}
+                    Justify
                 </span>
+                {auth.firm && (
+                    <span className="text-muted-foreground truncate text-xs leading-tight">
+                        {auth.firm.name}
+                    </span>
+                )}
             </div>
         </>
     );

@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Firm;
+use App\Tenancy\CurrentFirm;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,11 +37,23 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $firm = $user === null ? null : app(CurrentFirm::class)->get();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                'firm' => $firm === null ? null : [
+                    'id' => $firm->id,
+                    'name' => $firm->name,
+                    'vat_registered' => $firm->vat_registered,
+                    'default_cost_basis' => $firm->default_cost_basis,
+                    'rounding_policy' => $firm->rounding_policy,
+                    'role' => $user->roleIn($firm)?->value,
+                ],
+                'firms' => $user === null ? [] : $user->firms()->orderBy('name')->get()->map(fn (Firm $f) => ['id' => $f->id, 'name' => $f->name])->all(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

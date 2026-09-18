@@ -10,8 +10,19 @@ export type User = {
     [key: string]: unknown;
 };
 
+export type CurrentFirm = {
+    id: string;
+    name: string;
+    vat_registered: boolean;
+    default_cost_basis: 'party_party' | 'advocate_client';
+    rounding_policy: string;
+    role: 'owner' | 'admin' | 'advocate' | 'accounts' | 'readonly' | null;
+};
+
 export type Auth = {
     user: User;
+    firm: CurrentFirm | null;
+    firms: { id: string; name: string }[];
 };
 
 export type Passkey = {

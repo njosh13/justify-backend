@@ -57,6 +57,32 @@ final class AroItem extends Model
         return $this->hasMany(AroBand::class, 'aro_item_id')->orderBy('sort');
     }
 
+    /**
+     * Modifiers in the same version that may be applied to this head.
+     *
+     * @return Collection<int, AroModifier>
+     */
+    public function applicableModifiers(): Collection
+    {
+        return AroModifier::query()
+            ->where('aro_version_id', $this->aro_version_id)
+            ->orderBy('sort_order')
+            ->orderBy('code')
+            ->get()
+            ->filter(fn (AroModifier $m) => $m->applies_to_codes === null || in_array($this->code, $m->applies_to_codes, true))
+            ->values();
+    }
+
+    public function postureTable(?string $scale): ?string
+    {
+        $spec = $this->params['posture_table'] ?? null;
+        if (is_array($spec)) {
+            return $scale === null ? null : ($spec[$scale] ?? null);
+        }
+
+        return is_string($spec) ? $spec : null;
+    }
+
     protected function casts(): array
     {
         return [

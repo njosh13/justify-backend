@@ -1,5 +1,13 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    BookOpenCheck,
+    Briefcase,
+    Calculator,
+    FileText,
+    LayoutGrid,
+    Scale,
+    Users,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,30 +22,36 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import { index as aroIndex } from '@/routes/admin/aro';
+import { index as billsIndex } from '@/routes/bills';
+import { index as calculatorIndex } from '@/routes/calculator';
+import { index as clientsIndex } from '@/routes/clients';
+import { index as mattersIndex } from '@/routes/matters';
+import type { Auth, NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
+    { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+    { title: 'Fee calculator', href: calculatorIndex(), icon: Calculator },
+    { title: 'Clients', href: clientsIndex(), icon: Users },
+    { title: 'Matters', href: mattersIndex(), icon: Briefcase },
+    { title: 'Bills', href: billsIndex(), icon: FileText },
+];
+
+const adminNavItems: NavItem[] = [
+    { title: 'ARO catalogue', href: aroIndex(), icon: BookOpenCheck },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        title: 'Advocates (Remuneration) Order',
+        href: 'https://new.kenyalaw.org/akn/ke/act/ln/1962/64/eng@2022-12-31',
+        icon: Scale,
     },
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<{ auth: Auth }>().props;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -53,7 +67,9 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain
+                    items={auth.firm ? [...mainNavItems, ...adminNavItems] : []}
+                />
             </SidebarContent>
 
             <SidebarFooter>

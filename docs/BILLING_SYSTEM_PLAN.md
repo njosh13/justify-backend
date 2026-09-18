@@ -887,6 +887,17 @@ The code in `app/Domain/Aro` departs from the snippets above in these ways; the 
 - `InterestCalculator` rounds once, after the whole product (a principal with cents no longer throws).
 - `AroSeeder` is a full sync for draft versions (rows removed from YAML are deleted; a `reviewed` status survives a reseed).
 
+### 4.12b Advocate test harness (2026-09-18)
+
+Before the TanStack client is wired, the flows in §7 and §10 exist as Inertia/React pages in this repository (`/calculator`, `/clients`, `/matters/{id}`, `/bills/{id}`, `/admin/aro`). They are internal test pages, not the product UI, and they call the same services the `/api/v1` controllers will call: `ChargeableItemPricer`, `ChargeableItemWriter`, `ShortfallCalculator`, `BillAssembler`, `BillIssuer`, `BillLifecycle`, `BillPdfRenderer`, `AroCatalogue`, `AroPublisher`. Deviations from the plan taken while building them:
+
+- PDFs use `barryvdh/laravel-dompdf` rather than `spatie/laravel-pdf`; Browsershot needs a headless Chrome on every environment and the para 69 table renders fine in DOMPDF.
+- Roles live on `firm_user.role` with plain policies; `spatie/laravel-permission` is deferred until per-firm custom roles are needed.
+- `firm_user.id` is a uuid pivot model (`FirmUser`); `users.id` stays bigint.
+- The matter's posture and certificates describe its instruction fee and are applied only to heads that take them (Sch 6/7 item 1 tables; Sch 6 instruction fees). A per-line override is passed as given and refused by the engine when it does not fit.
+- `AroVersion::current()` falls back to the latest unpublished version so the calculator works on a fresh install; `BillIssuer` still refuses to issue on anything but a published version.
+- Sanctum bearer tokens, `time_entries`, `documents`, `taxations`, `interest_accruals`, `firm_tax_profiles` and `tax_rates` are not built yet; see `docs/Todo.md` Phase F.
+
 ### 4.13 Bill assembler
 
 ```text
@@ -940,67 +951,67 @@ Flat fees per particular (registration, opposition, renewal, assignment, search)
 
 ### Schedule 5 — general business and elected matters
 
-| Code                 | Rule                | Computation                                                                                                             |
-| -------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `S5.HOURLY`          | Sch 5 Part I para 2 | agreed hourly rate (from `fee_agreements`), no scale floor of its own; para 3 still applies via the applicable schedule |
-| `S5.INSTRUCTIONS`    | Part II item 1      | discretionary (no floor stated)                                                                                         |
-| `S5.DRAWING`         | Part II item 2      | per_folio 250                                                                                                           |
-| `S5.ENGROSSING`      | Part II item 2      | per_folio 50                                                                                                            |
-| `S5.FAIR_COPY`       | Part II item 2      | per_folio 30                                                                                                            |
-| `S5.PERUSING`        | Part II item 2      | per_folio 70                                                                                                            |
-| `S5.ATTENDANCE`      | Part II item 3      | per_unit 15 min @1,000                                                                                                  |
-| `S5.PHONE`           | Part II item 3      | per_unit 15 min @150                                                                                                    |
-| `S5.TIME_ENGAGED`    | Part II item 4      | per_unit 15 min @7,000 (in lieu of per-item charges)                                                                    |
-| `S5.LETTER`          | Part II item 5      | flat 300 or per_folio 200                                                                                               |
-| `S5.LETTER_RECEIVED` | Part II item 5      | flat 150 or per_folio 70                                                                                                |
-| `S5.OPINION`         | Part II item 6      | discretionary_floor 35,000                                                                                              |
-| `S5.JOURNEY.DAY`     | Part II item 6      | flat 15,000 per day of ≥7 hours                                                                                         |
-| `S5.JOURNEY.HOUR`    | Part II item 6      | per_unit hour @2,500                                                                                                    |
+| Code                 | Rule                | Computation                                                                                                                                                                           |
+| -------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `S5.HOURLY`          | Sch 5 Part I para 2 | agreed hourly rate (from `fee_agreements`), no scale floor of its own; para 3 still applies via the applicable schedule                                                               |
+| `S5.INSTRUCTIONS`    | Part II item 1      | discretionary (no floor stated)                                                                                                                                                       |
+| `S5.DRAWING`         | Part II item 2      | per_folio 250                                                                                                                                                                         |
+| `S5.ENGROSSING`      | Part II item 2      | per_folio 50                                                                                                                                                                          |
+| `S5.FAIR_COPY`       | Part II item 2      | per_folio 30                                                                                                                                                                          |
+| `S5.PERUSING`        | Part II item 2      | per_folio 70                                                                                                                                                                          |
+| `S5.ATTENDANCE`      | Part II item 3      | per_unit 15 min @1,000                                                                                                                                                                |
+| `S5.PHONE`           | Part II item 3      | per_unit 15 min @150                                                                                                                                                                  |
+| `S5.TIME_ENGAGED`    | Part II item 4      | per_unit 15 min @7,000 (in lieu of per-item charges)                                                                                                                                  |
+| `S5.LETTER`          | Part II item 5      | flat 300 or per_folio 200                                                                                                                                                             |
+| `S5.LETTER_RECEIVED` | Part II item 5      | flat 150 or per_folio 70                                                                                                                                                              |
+| `S5.OPINION`         | Part II item 6      | discretionary_floor 35,000                                                                                                                                                            |
+| `S5.JOURNEY.DAY`     | Part II item 6      | flat 15,000 per day of ≥7 hours                                                                                                                                                       |
+| `S5.JOURNEY.HOUR`    | Part II item 6      | per_unit hour @2,500                                                                                                                                                                  |
 | `S5.DEBT_COLLECTION` | Part II item 7      | base_plus_rate (the Order states a base per bracket; bases are not continuous): ≤100k 10%; 100k–500k 10,000 + 5% over 100k; 500k–2M 50,000 + 3% over 500k; >2M 100,000 + 1.5% over 2M |
-| `S5.CHATTELS.SMALL`  | Chattels transfer   | flat 6,000 (≤50,000 secured)                                                                                            |
-| `S5.CHATTELS.LARGE`  | Chattels transfer   | `S1.SECURITY.GRANTEE` ×0.5 (>50,000 secured)                                                                            |
+| `S5.CHATTELS.SMALL`  | Chattels transfer   | flat 6,000 (≤50,000 secured)                                                                                                                                                          |
+| `S5.CHATTELS.LARGE`  | Chattels transfer   | `S1.SECURITY.GRANTEE` ×0.5 (>50,000 secured)                                                                                                                                          |
 
 Modifiers: `S5.DEBT.ONE_LETTER` ×0.5 floor 1,000.
 
 ### Schedule 6 — High Court (Part A party-and-party; Part B = A × 1.5)
 
-| Code                              | Rule               | Basis    | Computation                            | Bands                                                                                              |
-| --------------------------------- | ------------------ | -------- | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `S6.INSTR.UNDEFENDED`             | item 1(a)          | value    | tiered                                 | (0–500k] fixed 45,000; (500k–750k] fixed 65,000; (750k–1M] fixed 75,000; (1M–20M] 1.75%; >20M 1.5% |
-| `S6.INSTR.DEFENDED`               | item 1(b)          | value    | tiered                                 | (0–500k] fixed 75,000; (500k–750k] fixed 90,000; (750k–1M] fixed 120,000; (1M–20M] 2%; >20M 1.5%   |
-| `S6.INSTR.OTHER.UNDEFENDED`       | Other matters (i)  | —        | discretionary_floor 45,000             |
-| `S6.INSTR.OTHER.DEFENDED`         | Other matters (ii) | —        | discretionary_floor 75,000             |
-| `S6.INSTR.APPEAL`                 | Appeals (a)        | —        | discretionary_floor 25,200             |
-| `S6.INSTR.ELECTION_PETITION`      | (i)                | —        | discretionary_floor 500,000            |
-| `S6.INSTR.CONSTITUTIONAL.OPPOSED` | (j)(ii)            | —        | discretionary_floor 100,000            |
-| `S6.INSTR.ARBITRAL_SET_ASIDE`     | (j)(iii)           | —        | flat 50,000                            |
-| `S6.INSTR.DIVORCE.UNDEFENDED`     | (g)(i)             | —        | flat 20,000                            |
-| `S6.INSTR.DIVORCE.DEFENDED`       | (g)(i)             | —        | discretionary_floor 35,300             |
-| `S6.INSTR.WINDING_UP.SUPPORT`     | (f)(ii)            | —        | flat 10,000                            |
-| `S6.INSTR.COMPLEX_CERTIFIED`      | (c)(vii)           | —        | discretionary_floor 100,000            |
-| `S6.INSTR.APPLICATION.UNOPPOSED`  | (c)(viii)          | —        | flat 3,000                             |
-| `S6.INSTR.APPLICATION.OPPOSED`    | (c)(viii)          | —        | discretionary_floor 5,000              |
-| `S6.GETTING_UP`                   | para 2             | —        | derived: ≥ ⅓ instruction fee           |
-| `S6.DRAWING.PLEADING`             | item 4(a)          | folios   | per_folio: ≤4 folios 1,100; +150/folio |
-| `S6.DRAWING.OTHER`                | item 4(d)          | folios   | per_folio 180                          |
-| `S6.DRAWING.BILL_OF_COSTS`        | item 4(e)          | folios   | per_folio 180                          |
-| `S6.DRAWING.AFFIDAVIT_OF_SERVICE` | item 4(f)          | —        | flat 240                               |
-| `S6.COPIES`                       | item 5(a),(e)      | folios   | per_folio 25                           |
-| `S6.LETTER`                       | item 6             | —        | flat 1,000 or per_folio 118            |
-| `S6.ATTEND.REGISTRAR`             | item 7(a)          | —        | flat 1,000                             |
-| `S6.ATTEND.ROUTINE`               | item 7(b)          | —        | flat 500                               |
-| `S6.ATTEND.COURT.HALF_HOUR`       | item 7(d)          | —        | lower 1,100 / higher 1,900             |
-| `S6.ATTEND.COURT.HOUR`            | item 7(d)          | —        | lower 2,300 / higher 3,000             |
-| `S6.ATTEND.COURT.DAY`             | item 7(d)          | —        | lower 10,000 / higher 15,000           |
-| `S6.PERUSAL.ROUTINE`              | item 8(b)          | —        | flat 50                                |
-| `S6.SERVICE.LOCAL`                | item 9(a)          | —        | flat 1,400 (within 3 km)               |
+| Code                              | Rule               | Basis    | Computation                                                                          | Bands                                                                                              |
+| --------------------------------- | ------------------ | -------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `S6.INSTR.UNDEFENDED`             | item 1(a)          | value    | tiered                                                                               | (0–500k] fixed 45,000; (500k–750k] fixed 65,000; (750k–1M] fixed 75,000; (1M–20M] 1.75%; >20M 1.5% |
+| `S6.INSTR.DEFENDED`               | item 1(b)          | value    | tiered                                                                               | (0–500k] fixed 75,000; (500k–750k] fixed 90,000; (750k–1M] fixed 120,000; (1M–20M] 2%; >20M 1.5%   |
+| `S6.INSTR.OTHER.UNDEFENDED`       | Other matters (i)  | —        | discretionary_floor 45,000                                                           |
+| `S6.INSTR.OTHER.DEFENDED`         | Other matters (ii) | —        | discretionary_floor 75,000                                                           |
+| `S6.INSTR.APPEAL`                 | Appeals (a)        | —        | discretionary_floor 25,200                                                           |
+| `S6.INSTR.ELECTION_PETITION`      | (i)                | —        | discretionary_floor 500,000                                                          |
+| `S6.INSTR.CONSTITUTIONAL.OPPOSED` | (j)(ii)            | —        | discretionary_floor 100,000                                                          |
+| `S6.INSTR.ARBITRAL_SET_ASIDE`     | (j)(iii)           | —        | flat 50,000                                                                          |
+| `S6.INSTR.DIVORCE.UNDEFENDED`     | (g)(i)             | —        | flat 20,000                                                                          |
+| `S6.INSTR.DIVORCE.DEFENDED`       | (g)(i)             | —        | discretionary_floor 35,300                                                           |
+| `S6.INSTR.WINDING_UP.SUPPORT`     | (f)(ii)            | —        | flat 10,000                                                                          |
+| `S6.INSTR.COMPLEX_CERTIFIED`      | (c)(vii)           | —        | discretionary_floor 100,000                                                          |
+| `S6.INSTR.APPLICATION.UNOPPOSED`  | (c)(viii)          | —        | flat 3,000                                                                           |
+| `S6.INSTR.APPLICATION.OPPOSED`    | (c)(viii)          | —        | discretionary_floor 5,000                                                            |
+| `S6.GETTING_UP`                   | para 2             | —        | derived: ≥ ⅓ instruction fee                                                         |
+| `S6.DRAWING.PLEADING`             | item 4(a)          | folios   | per_folio: ≤4 folios 1,100; +150/folio                                               |
+| `S6.DRAWING.OTHER`                | item 4(d)          | folios   | per_folio 180                                                                        |
+| `S6.DRAWING.BILL_OF_COSTS`        | item 4(e)          | folios   | per_folio 180                                                                        |
+| `S6.DRAWING.AFFIDAVIT_OF_SERVICE` | item 4(f)          | —        | flat 240                                                                             |
+| `S6.COPIES`                       | item 5(a),(e)      | folios   | per_folio 25                                                                         |
+| `S6.LETTER`                       | item 6             | —        | flat 1,000 or per_folio 118                                                          |
+| `S6.ATTEND.REGISTRAR`             | item 7(a)          | —        | flat 1,000                                                                           |
+| `S6.ATTEND.ROUTINE`               | item 7(b)          | —        | flat 500                                                                             |
+| `S6.ATTEND.COURT.HALF_HOUR`       | item 7(d)          | —        | lower 1,100 / higher 1,900                                                           |
+| `S6.ATTEND.COURT.HOUR`            | item 7(d)          | —        | lower 2,300 / higher 3,000                                                           |
+| `S6.ATTEND.COURT.DAY`             | item 7(d)          | —        | lower 10,000 / higher 15,000                                                         |
+| `S6.PERUSAL.ROUTINE`              | item 8(b)          | —        | flat 50                                                                              |
+| `S6.SERVICE.LOCAL`                | item 9(a)          | —        | flat 1,400 (within 3 km)                                                             |
 | `S6.SERVICE.PER_KM`               | item 9(b)          | km       | per_unit km @35 beyond 3 km, **ceiling** (bound max); billed with `S6.SERVICE.LOCAL` |
-| `S6.EXECUTION.INSTRUCTIONS`       | item 12(a)         | —        | flat 1,000                             |
-| `S6.OBJECTION.INSTRUCTIONS`       | item 13(a)         | —        | flat 10,000                            |
-| `S6.GARNISHEE.UNOPPOSED`          | item 14(a)         | —        | flat 4,200                             |
-| `S6.GARNISHEE.OPPOSED`            | item 14(b)         | —        | discretionary_floor 14,000             |
-| `S6.CERT_COSTS.NO_APPEARANCE`     | item 15(a)(i)      | —        | flat 1,200                             |
-| `S6.CERT_COSTS.EXTRA_SERVICE`     | item 15(a)(ii)     | attempts | per_unit @250                          |
+| `S6.EXECUTION.INSTRUCTIONS`       | item 12(a)         | —        | flat 1,000                                                                           |
+| `S6.OBJECTION.INSTRUCTIONS`       | item 13(a)         | —        | flat 10,000                                                                          |
+| `S6.GARNISHEE.UNOPPOSED`          | item 14(a)         | —        | flat 4,200                                                                           |
+| `S6.GARNISHEE.OPPOSED`            | item 14(b)         | —        | discretionary_floor 14,000                                                           |
+| `S6.CERT_COSTS.NO_APPEARANCE`     | item 15(a)(i)      | —        | flat 1,200                                                                           |
+| `S6.CERT_COSTS.EXTRA_SERVICE`     | item 15(a)(ii)     | attempts | per_unit @250                                                                        |
 
 Modifiers on instruction fees: posture (65/75/85%), `S6.TWO_ADVOCATES` ×2, `S6.SENIOR_COUNSEL` ×1.5, `S6.ADJOURNMENT` add ≤15% per occasion (judge's direction required), `S6.PAYMENT_IN.LATE_ACCEPTANCE` ×0.75, `S6.PAYMENT_IN.NOT_ACCEPTED` ×0.5 (proviso (v)). Rent/possession suits: value = arrears + max(annual rental value, 1/10 capital value) (proviso (iv)).
 
@@ -1079,20 +1090,20 @@ Lower scale where disposed of ex parte, by consent, or on a preliminary point of
 
 These are places where the published text is ambiguous or self-contradictory. Each is stored in `aro_interpretations` and cited on any bill that depends on it. Decisions below are the recommended defaults; the firm's admin can adopt a different reading per firm, and the bill will cite that instead.
 
-| ID  | Rule                          | Problem                                                                                                                                                               | Adopted reading                                                                                                                                                                          | Rationale                                                                                                                                                                    |
-| --- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| I-1 | Sch 6 & 7 item 1(a)–(c)       | "(a) … no appearance entered … 65% of the fees chargeable under item 1(a)" is self-referential as published.                                                          | (a)/(b)/(c) are percentage multipliers on the tables that follow: 65% applies to the undefended table; 75% and 85% apply to the defended table.                                          | The tables themselves are labelled (a) undefended and (b) defended; the multipliers only make sense as reductions of those. Matches prevailing practice.                     |
-| I-2 | Sch 2 para 1(b),(c) vs Note 4 | (b) and (c) say "the fee prescribed in (a) **plus**"; Note 4 says "It shall not be cumulative" and "percentage rate of the band within which the consideration lies". | Cumulative (tiered).                                                                                                                                                                     | The non-cumulative reading gives a rent of 1,000,000 a fee of 30,000 (3%) — lower than a rent of 500,000 (75,000). A scale that falls as the basis rises cannot be intended. |
-| I-3 | Sch 2 para 1(c)               | "(c) … the fee prescribed in **(a)** plus 1% on the excess" skips (b).                                                                                                | Fee at 3,000,000 under (b) plus 1% of the excess over 3,000,000.                                                                                                                         | Literal reading produces a cliff (4,000,000 → 85,000 vs 3,000,000 → 150,000).                                                                                                |
-| I-4 | Sch 1 rule 26(1)              | Rules 27–41 "applied in sequence" — order of stacked reductions.                                                                                                      | Modifiers execute in the paragraph order of the Order (`sort_order`), reductions before floors, floors before caps.                                                                      | Follows the text; produces the smaller of two reductions only where the Order says so (printed-form cap).                                                                    |
-| I-5 | Para 7 interest               | Simple or compound; day count.                                                                                                                                        | Simple, actual/365.                                                                                                                                                                      | Order silent; Kenyan courts apply simple interest absent agreement.                                                                                                          |
-| I-6 | Sch 6 para 2 getting-up       | "not less than one-third of the instruction fee allowed on taxation" — party-and-party or advocate-and-client base.                                                   | One-third of the party-and-party instruction fee, then the Part B 50% uplift applies to the total.                                                                                       | Part B says "the fees prescribed in A above, increased by 50%" — the uplift is applied once, to the whole.                                                                   |
-| I-7 | Rounding                      | Order figures are whole shillings; percentages produce cents.                                                                                                         | Compute in cents; round each bill line HALF_UP to the shilling; totals are sums of rounded lines.                                                                                        | Avoids penny drift between preview and bill. Firm-configurable.                                                                                                              |
-| I-8 | Sch 5 Part I hourly vs para 3 | Does an agreed hourly rate escape the schedule minimum?                                                                                                               | No. Hourly billing is permitted, but the total charged for a matter to which another schedule applies may not fall below that schedule's fee unless para 22 election is made in writing. | Para 3 is absolute; para 22(2) confirms election cannot reduce below scale.                                                                                                  |
-| I-9 | Sch 10 item 1(a)              | The fee column for gross estate ≤ 1,000,000 is blank in both the Kenya Law PDF and web text.                                                                              | Seed the (0–1M] band as 5% provisionally; replace with the fixed brackets once transcribed from the original enactment.                                                     | The >1M rule is explicit (5% of the first 1,000,000 plus 1% of the excess); the provisional band keeps the >1M computation exact while flagging small estates. **Proposed.** |
-| I-10 | Sch 10 item 1(g)             | Literal "2,103 per 20,000 of net estate × number of entries" gives 210,300 for a 400,000 estate with 5 entries; this plan's worked case said 52,575.                     | Seed the literal reading; golden test skipped until reconciled against taxing-officer practice.                                                                              | 52,575 matches no reading of the published words. **Proposed.**                                                                                                              |
-| I-11 | Sch 7 item 1(a)–(c)          | Sch 7's posture multipliers cite "item 1(a)/(b)" but its table is split lower/higher, not undefended/defended.                                                          | 65% attaches to the lower scale (no defence filed); 75% and 85% to the higher scale.                                                                                         | The Note to item 1 ties the lower scale to "no defence or other denial of liability", the same condition as Sch 6's table (a).                                             |
-| I-12 | Sch 10 Part B                | "In contested matter under the law, the fees as between advocate and client shall be … increased by 50%" — does the uplift reach uncontested probate work?                | No. Heads contested by nature always uplift; uncontested heads never; neutral heads (drawing, perusing, letters, attendances, inventory) uplift only when the matter is flagged contested (`FeeRequest::$contested`). | Every other Part B opens "As between advocate and client the minimum fee shall be"; Sch 10 alone qualifies it with "in contested matter".                                   |
+| ID   | Rule                          | Problem                                                                                                                                                               | Adopted reading                                                                                                                                                                                                       | Rationale                                                                                                                                                                    |
+| ---- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I-1  | Sch 6 & 7 item 1(a)–(c)       | "(a) … no appearance entered … 65% of the fees chargeable under item 1(a)" is self-referential as published.                                                          | (a)/(b)/(c) are percentage multipliers on the tables that follow: 65% applies to the undefended table; 75% and 85% apply to the defended table.                                                                       | The tables themselves are labelled (a) undefended and (b) defended; the multipliers only make sense as reductions of those. Matches prevailing practice.                     |
+| I-2  | Sch 2 para 1(b),(c) vs Note 4 | (b) and (c) say "the fee prescribed in (a) **plus**"; Note 4 says "It shall not be cumulative" and "percentage rate of the band within which the consideration lies". | Cumulative (tiered).                                                                                                                                                                                                  | The non-cumulative reading gives a rent of 1,000,000 a fee of 30,000 (3%) — lower than a rent of 500,000 (75,000). A scale that falls as the basis rises cannot be intended. |
+| I-3  | Sch 2 para 1(c)               | "(c) … the fee prescribed in **(a)** plus 1% on the excess" skips (b).                                                                                                | Fee at 3,000,000 under (b) plus 1% of the excess over 3,000,000.                                                                                                                                                      | Literal reading produces a cliff (4,000,000 → 85,000 vs 3,000,000 → 150,000).                                                                                                |
+| I-4  | Sch 1 rule 26(1)              | Rules 27–41 "applied in sequence" — order of stacked reductions.                                                                                                      | Modifiers execute in the paragraph order of the Order (`sort_order`), reductions before floors, floors before caps.                                                                                                   | Follows the text; produces the smaller of two reductions only where the Order says so (printed-form cap).                                                                    |
+| I-5  | Para 7 interest               | Simple or compound; day count.                                                                                                                                        | Simple, actual/365.                                                                                                                                                                                                   | Order silent; Kenyan courts apply simple interest absent agreement.                                                                                                          |
+| I-6  | Sch 6 para 2 getting-up       | "not less than one-third of the instruction fee allowed on taxation" — party-and-party or advocate-and-client base.                                                   | One-third of the party-and-party instruction fee, then the Part B 50% uplift applies to the total.                                                                                                                    | Part B says "the fees prescribed in A above, increased by 50%" — the uplift is applied once, to the whole.                                                                   |
+| I-7  | Rounding                      | Order figures are whole shillings; percentages produce cents.                                                                                                         | Compute in cents; round each bill line HALF_UP to the shilling; totals are sums of rounded lines.                                                                                                                     | Avoids penny drift between preview and bill. Firm-configurable.                                                                                                              |
+| I-8  | Sch 5 Part I hourly vs para 3 | Does an agreed hourly rate escape the schedule minimum?                                                                                                               | No. Hourly billing is permitted, but the total charged for a matter to which another schedule applies may not fall below that schedule's fee unless para 22 election is made in writing.                              | Para 3 is absolute; para 22(2) confirms election cannot reduce below scale.                                                                                                  |
+| I-9  | Sch 10 item 1(a)              | The fee column for gross estate ≤ 1,000,000 is blank in both the Kenya Law PDF and web text.                                                                          | Seed the (0–1M] band as 5% provisionally; replace with the fixed brackets once transcribed from the original enactment.                                                                                               | The >1M rule is explicit (5% of the first 1,000,000 plus 1% of the excess); the provisional band keeps the >1M computation exact while flagging small estates. **Proposed.** |
+| I-10 | Sch 10 item 1(g)              | Literal "2,103 per 20,000 of net estate × number of entries" gives 210,300 for a 400,000 estate with 5 entries; this plan's worked case said 52,575.                  | Seed the literal reading; golden test skipped until reconciled against taxing-officer practice.                                                                                                                       | 52,575 matches no reading of the published words. **Proposed.**                                                                                                              |
+| I-11 | Sch 7 item 1(a)–(c)           | Sch 7's posture multipliers cite "item 1(a)/(b)" but its table is split lower/higher, not undefended/defended.                                                        | 65% attaches to the lower scale (no defence filed); 75% and 85% to the higher scale.                                                                                                                                  | The Note to item 1 ties the lower scale to "no defence or other denial of liability", the same condition as Sch 6's table (a).                                               |
+| I-12 | Sch 10 Part B                 | "In contested matter under the law, the fees as between advocate and client shall be … increased by 50%" — does the uplift reach uncontested probate work?            | No. Heads contested by nature always uplift; uncontested heads never; neutral heads (drawing, perusing, letters, attendances, inventory) uplift only when the matter is flagged contested (`FeeRequest::$contested`). | Every other Part B opens "As between advocate and client the minimum fee shall be"; Sch 10 alone qualifies it with "in contested matter".                                    |
 
 ---
 
@@ -1478,32 +1489,32 @@ Each row becomes one `it(...)` in `tests/Feature/Aro/<Schedule>Test.php`. Amount
 
 **Schedule 6 (`S6.INSTR.*`, getting-up, uplift, certificates)**
 
-| Input                                                                          | Expected                  | Rule                                          |
-| ------------------------------------------------------------------------------ | ------------------------- | --------------------------------------------- |
-| undefended, 400,000                                                            | 45,000                    | 1(a) bracket                                  |
-| undefended, 600,000                                                            | 65,000                    |                                               |
-| undefended, 900,000                                                            | 75,000                    |                                               |
-| undefended, 5,000,000                                                          | 145,000                   | 75,000 + 1.75% × 4,000,000                    |
-| undefended, 20,000,000                                                         | 407,500                   |                                               |
-| undefended, 50,000,000                                                         | 857,500                   | 407,500 + 1.5% × 30,000,000                   |
-| defended, 400,000                                                              | 75,000                    | 1(b)                                          |
-| defended, 5,000,000                                                            | 200,000                   | 120,000 + 2% × 4,000,000                      |
-| defended, 20,000,000                                                           | 500,000                   |                                               |
-| defended, 50,000,000                                                           | 950,000                   |                                               |
-| defended 5,000,000, posture settled_pre_hearing                                | 170,000                   | 85% (I-1)                                     |
-| defended 5,000,000, posture summary                                            | 150,000                   | 75%                                           |
-| undefended 5,000,000, posture no_appearance                                    | 94,250                    | 65% of 145,000                                |
-| defended 5,000,000, getting-up minimum                                         | 66,666.67 → 66,667        | para 2, ⅓                                     |
-| defended 5,000,000, advocate-and-client                                        | 300,000                   | Part B ×1.5                                   |
-| defended 5,000,000 + getting-up, advocate-and-client                           | 400,000                   | (200,000 + 66,666.67) × 1.5 (I-6)             |
-| defended 5,000,000, senior counsel certificate                                 | 300,000 (party-and-party) | proviso (iii) +50%                            |
-| defended 5,000,000, two advocates certificate                                  | 400,000                   | proviso (ii) ×2                               |
-| adjournment cap on 200,000                                                     | 30,000                    | proviso (ii) 15%                              |
-| `S6.DRAWING.PLEADING`, 3 folios                                                | 1,100                     | ≤4 folios                                     |
-| `S6.DRAWING.PLEADING`, 6 folios                                                | 1,400                     | 1,100 + 2 × 150                               |
-| `S6.ATTEND.COURT.DAY`, lower / higher                                          | 10,000 / 15,000           | item 7(d)                                     |
-| `S6.SERVICE.LOCAL` + `S6.SERVICE.PER_KM` 7 km                                   | 1,400 + 7 × 35 = 1,645; per-km line is a ceiling | item 9                                        |
-| possession suit: arrears 200,000, annual rent 600,000, capital value 5,000,000 | basis 800,000             | proviso (iv): arrears + max(600,000; 500,000) |
+| Input                                                                          | Expected                                         | Rule                                          |
+| ------------------------------------------------------------------------------ | ------------------------------------------------ | --------------------------------------------- |
+| undefended, 400,000                                                            | 45,000                                           | 1(a) bracket                                  |
+| undefended, 600,000                                                            | 65,000                                           |                                               |
+| undefended, 900,000                                                            | 75,000                                           |                                               |
+| undefended, 5,000,000                                                          | 145,000                                          | 75,000 + 1.75% × 4,000,000                    |
+| undefended, 20,000,000                                                         | 407,500                                          |                                               |
+| undefended, 50,000,000                                                         | 857,500                                          | 407,500 + 1.5% × 30,000,000                   |
+| defended, 400,000                                                              | 75,000                                           | 1(b)                                          |
+| defended, 5,000,000                                                            | 200,000                                          | 120,000 + 2% × 4,000,000                      |
+| defended, 20,000,000                                                           | 500,000                                          |                                               |
+| defended, 50,000,000                                                           | 950,000                                          |                                               |
+| defended 5,000,000, posture settled_pre_hearing                                | 170,000                                          | 85% (I-1)                                     |
+| defended 5,000,000, posture summary                                            | 150,000                                          | 75%                                           |
+| undefended 5,000,000, posture no_appearance                                    | 94,250                                           | 65% of 145,000                                |
+| defended 5,000,000, getting-up minimum                                         | 66,666.67 → 66,667                               | para 2, ⅓                                     |
+| defended 5,000,000, advocate-and-client                                        | 300,000                                          | Part B ×1.5                                   |
+| defended 5,000,000 + getting-up, advocate-and-client                           | 400,000                                          | (200,000 + 66,666.67) × 1.5 (I-6)             |
+| defended 5,000,000, senior counsel certificate                                 | 300,000 (party-and-party)                        | proviso (iii) +50%                            |
+| defended 5,000,000, two advocates certificate                                  | 400,000                                          | proviso (ii) ×2                               |
+| adjournment cap on 200,000                                                     | 30,000                                           | proviso (ii) 15%                              |
+| `S6.DRAWING.PLEADING`, 3 folios                                                | 1,100                                            | ≤4 folios                                     |
+| `S6.DRAWING.PLEADING`, 6 folios                                                | 1,400                                            | 1,100 + 2 × 150                               |
+| `S6.ATTEND.COURT.DAY`, lower / higher                                          | 10,000 / 15,000                                  | item 7(d)                                     |
+| `S6.SERVICE.LOCAL` + `S6.SERVICE.PER_KM` 7 km                                  | 1,400 + 7 × 35 = 1,645; per-km line is a ceiling | item 9                                        |
+| possession suit: arrears 200,000, annual rent 600,000, capital value 5,000,000 | basis 800,000                                    | proviso (iv): arrears + max(600,000; 500,000) |
 
 **Schedule 7 (`S7.INSTR`)**
 
@@ -1519,15 +1530,15 @@ Each row becomes one `it(...)` in `tests/Feature/Aro/<Schedule>Test.php`. Amount
 
 **Schedule 10 (`S10.*`)**
 
-| Input                                     | Expected                        | Rule                            |
-| ----------------------------------------- | ------------------------------- | ------------------------------- |
-| uncontested grant, gross estate 3,000,000 | 70,000                          | 5% × 1,000,000 + 1% × 2,000,000 |
-| uncontested grant, 10,000,000             | 140,000                         |                                 |
-| contested grant, 3,000,000                | ≥140,000                        | item 1(d) twice                 |
-| contested re-sealing, 3,000,000           | 56,000                          | item 1(b) four-fifths           |
-| inventory: net estate 400,000, 5 entries  | **unreconciled** (I-10): literal text gives 20 units × 5 entries × 2,103 = 210,300; 52,575 = 25 × 2,103 matches no reading of the words | test skipped until resolved |
-| inventory: net estate 20,000, 1 entry     | 3,000                           | 2,103 → floor 3,000             |
-| brackets ≤1,000,000                       | **pending transcription** (§14) |                                 |
+| Input                                     | Expected                                                                                                                                | Rule                            |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| uncontested grant, gross estate 3,000,000 | 70,000                                                                                                                                  | 5% × 1,000,000 + 1% × 2,000,000 |
+| uncontested grant, 10,000,000             | 140,000                                                                                                                                 |                                 |
+| contested grant, 3,000,000                | ≥140,000                                                                                                                                | item 1(d) twice                 |
+| contested re-sealing, 3,000,000           | 56,000                                                                                                                                  | item 1(b) four-fifths           |
+| inventory: net estate 400,000, 5 entries  | **unreconciled** (I-10): literal text gives 20 units × 5 entries × 2,103 = 210,300; 52,575 = 25 × 2,103 matches no reading of the words | test skipped until resolved     |
+| inventory: net estate 20,000, 1 entry     | 3,000                                                                                                                                   | 2,103 → floor 3,000             |
+| brackets ≤1,000,000                       | **pending transcription** (§14)                                                                                                         |                                 |
 
 **Schedule 11 (`S11.INSTR`)**
 

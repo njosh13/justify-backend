@@ -7,9 +7,11 @@ dependencies.
 
 Markers: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
-**Status 2026-09-17:** Phases A–D complete and green (231 tests, 1 skipped for
-I-10; PHPStan level 7 + Pint clean; CI runs the suite on Postgres 16 / PHP 8.4).
-Audit fixes of 2026-09-17 are listed under Phase E below. Deviations from plan while
+**Status 2026-09-18:** Phases A–F complete and green (277 tests, 1 skipped for
+I-10; PHPStan level 7 + Pint + `vp check` clean; CI runs the suite on Postgres 16 /
+PHP 8.4). Phase F is the advocate test harness — Inertia pages in this repo that
+walk firm → client → matter → priced lines → bill → PDF. Run
+`php artisan migrate:fresh --seed` then sign in as `test@example.com` / `password`. Deviations from plan while
 implementing: `brick/money` 0.15 uses `formatToLocale()` (not `formatTo()`)
 and camelCase `RoundingMode::HalfUp`; `users.id` stays bigint so
 `reviewed_by`/`decided_by` FKs are bigint, not uuid; Sch 4/6/12 "per 15 min"
@@ -145,31 +147,66 @@ From the review of the Devin build against the Order PDF.
 
 ---
 
-## Deferred — infrastructure (plan Phases 0/2 remainder)
+## Phase F — advocate test harness (2026-09-18)
 
-Do after Phase D is green:
+Decision: the advocate test happens on Inertia/React pages **in this repo**
+(the "client-facing" TanStack app is a separate deliverable; these pages are
+for us and pilot advocates to exercise the engine end to end). Every screen
+goes through the same services the JSON API will use, so `/api/v1` is a thin
+layer to add later — the TanStack client is not blocked on domain logic.
 
-- [ ] `composer require laravel/sanctum spatie/laravel-permission
-      spatie/laravel-activitylog laravel/horizon spatie/laravel-pdf`
-- [ ] Core schema §3.1–3.4: `firms`, `firm_user`, `clients`, `matters`,
-      `matter_classifications`, `fee_agreements`, `chargeable_items`,
-      `time_entries`, `documents`
-- [ ] `BelongsToFirm` trait + global scope + policies; tenant isolation test
-      suite (404-not-403 on cross-firm access)
-- [ ] `routes/api.php` `/api/v1` + Sanctum token auth (access + rotating refresh)
-- [ ] `POST /aro/preview`, classification, fee agreements, chargeable-items,
-      shortfall endpoints (§10)
-- [ ] Inertia admin: ARO versions/items/modifiers with two-person publish gate,
-      interpretations register
-- [ ] HTTP tests per §11.3 (below-minimum 422, uplift justification, etc.)
+- [x] `firms`, `firm_user` (uuid pivot), `clients`, `matters`,
+      `matter_classifications`, `fee_agreements`, `chargeable_items`, `bills`,
+      `bill_lines`, `bill_events`, `payments`; `aro_versions.published_by/at`;
+      `users.current_firm_id`
+- [x] Tenancy: `BelongsToFirm` trait + `FirmScope` + `CurrentFirm` (scoped
+      singleton, user's chosen membership) + `EnsureFirmSelected` middleware;
+      `firm_id` never fillable; cross-firm requests 404 (tests)
+- [x] Roles on `firm_user` (owner/admin/advocate/accounts/readonly) + policies;
+      `spatie/laravel-permission` not needed at this size
+- [x] Firm onboarding + settings (KRA PIN, VAT registered, rounding policy,
+      default cost basis, bill prefix); firm switcher endpoint
+- [x] Clients, matters (forum → governing schedule), classification (para 21
+      basis, scale, posture, certificates, contested, exemption with audit)
+- [x] Fee agreements incl. para 22 election with `election_communicated_at`
+- [x] Chargeable items: `ChargeableItemPricer` (matter context + line
+      overrides → `FeeRequest`), `ChargeableItemWriter` enforces para 3 floors,
+      "not exceeding" ceilings, uplift justification; snapshot stored per line
+- [x] `POST /aro/preview` + `GET /aro/items` (JSON, session auth) — the live
+      preview and the **Fee calculator** page use the same engine as bills
+- [x] `ShortfallCalculator` roll-up; matter page shows blocking / permitted
+- [x] `BillAssembler` (lines on the bill's basis, VAT/WHT, para 69 sections and
+      taxation line), `BillNumberer` (row-locked per-firm sequence),
+      `BillIssuer` (refuses shortfall / unpublished ARO; numbers, locks,
+      snapshots, renders PDF), `BillLifecycle` (deliver → deemed-agreed date,
+      para 7 interest claim, payments → partially_paid/paid)
+- [x] Immutability: model guards on `bills`/`bill_lines` + Postgres triggers;
+      only `taxed_off_cents` may change after issue
+- [x] PDFs via `barryvdh/laravel-dompdf` (pure PHP; plan's Browsershot needs a
+      headless Chrome on every box): fee note / tax invoice with VAT and WHT
+      memo, bill of costs in the para 69 five columns; HTML preview route
+- [x] Admin: ARO versions list + catalogue browser + interpretations; two-person
+      review/publish gate; `php artisan aro:publish` (with `--force` outside
+      production)
+- [x] `DemoSeeder` (local only): firm, two users (`test@example.com` /
+      `partner@example.com`, password `password`), conveyancing, High Court
+      and hourly matters with priced lines; ARO version published
+- [x] Tests: tenancy isolation, onboarding, chargeable-item enforcement,
+      preview, bill lifecycle (§8 worked invoice, numbering, lock, PDF bytes,
+      escaping), publish gate, page smoke (277 tests)
+- [ ] `/api/v1` with Sanctum bearer + refresh tokens for the TanStack client
+      (plan §10) — controllers wrap the same services
+- [ ] `time_entries` timer UI (time is captured today as `kind: time` lines)
+- [ ] Statement PDF, credit notes / void, taxation tracking (`taxations`)
+- [ ] `spatie/laravel-activitylog` on bills/classifications/ARO data
+- [ ] Line rounding is HALF_UP to the shilling at bill time (I-7); the item
+      minimum keeps cents — decide whether previews should show the rounded
+      figure
 
-## Deferred — bills, tax, eTIMS (plan Phases 4–5)
+## Deferred — tax, eTIMS, hardening (plan Phases 5–6)
 
-- [ ] Bills schema §3.5–3.6 + `BillAssembler`, `BillIssuer`, lock trigger,
-      numbering, delivery/deemed-agreement clocks, interest accrual job,
-      payments, taxations
-- [ ] PDFs: fee note, bill of costs (para 69 five-column), statement (§7)
-- [ ] VAT/WHT calculators + `firm_tax_profiles`, `tax_rates` (§8)
+- [ ] `firm_tax_profiles`, `tax_rates` tables (VAT rate is a constant today;
+      `firms.vat_registered` + `clients.is_vat_exempt` drive the invoice)
 - [ ] eTIMS: `EtimsClient`, device init, item registration,
       `SubmitInvoiceToEtims` (sequential `invcNo` reservation), credit notes,
       reconciliation job, portal fallback (§9)

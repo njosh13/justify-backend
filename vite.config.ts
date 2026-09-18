@@ -66,6 +66,8 @@ export default defineConfig({
         ignorePatterns: [
             '.github/**',
             'composer.json',
+            'database/seeders/aro/**',
+            'docs/**',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
         ],
