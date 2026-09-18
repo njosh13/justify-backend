@@ -71,3 +71,17 @@ interpretations:
     decision: "Seed the literal reading; reconcile the worked case against taxing-officer practice before relying on this head."
     rationale: "52,575 would result from e.g. 2,103 per 80,000 of net estate per entry, or (estate-units + entries) — neither matches the published words. Needs verification against the original enactment."
     status: proposed
+
+  - code: I-11
+    rule_reference: "Sch 7 item 1(a)–(c) vs the lower/higher scale table"
+    question: "Sch 7's posture multipliers cite \"item 1(a)\" and \"item 1(b)\", but Sch 7's table is split by lower/higher scale, not by undefended/defended."
+    decision: "65% attaches to the lower scale (no defence filed); 75% and 85% attach to the higher scale (defence filed)."
+    rationale: "The Note to item 1 ties the lower scale to \"no defence or other denial of liability\" — the same condition that defines Sch 6's undefended table (a). The multipliers were copied from Sch 6 by L.N. 45/2014 and carry the same pairing."
+    status: adopted
+
+  - code: I-12
+    rule_reference: "Sch 10 Part B"
+    question: "Part B reads \"In contested matter under the law, the fees as between advocate and client shall be … increased by 50%\". Does the uplift reach uncontested probate work billed advocate-and-client?"
+    decision: "No. The uplift applies only where the matter is contested. Heads contested by nature always uplift; uncontested heads never do; neutral heads (drawing, perusing, letters, attendances, inventory) uplift only when the matter is flagged contested."
+    rationale: "Every other schedule's Part B opens \"As between advocate and client the minimum fee shall be\"; Sch 10 alone qualifies it with \"in contested matter\". The qualification must be given effect."
+    status: adopted

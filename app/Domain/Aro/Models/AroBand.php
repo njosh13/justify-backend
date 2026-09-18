@@ -39,6 +39,6 @@ final class AroBand extends Model
 
     protected function casts(): array
     {
-        return ['rate' => 'decimal:8'];
+        return ['rate' => 'decimal:6'];
     }
 }

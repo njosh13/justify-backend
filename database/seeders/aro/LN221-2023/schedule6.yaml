@@ -11,6 +11,7 @@ items:
     computation: tiered
     is_instruction_fee: true
     applies_cost_basis: contentious
+    params: { posture_table: a }
     bands:
       - { lower: 0,          upper: 500_000,    fixed: 45_000 }
       - { lower: 500_000,    upper: 750_000,    fixed: 65_000 }
@@ -26,6 +27,7 @@ items:
     computation: tiered
     is_instruction_fee: true
     applies_cost_basis: contentious
+    params: { posture_table: b }
     bands:
       - { lower: 0,          upper: 500_000,    fixed: 75_000 }
       - { lower: 500_000,    upper: 750_000,    fixed: 90_000 }
@@ -50,10 +52,9 @@ items:
     schedule: 6
     label: "Getting up and preparing case for trial — not less than 1/3 of instruction fee"
     rule_reference: "Sch 6, para 2"
-    computation: flat
-    included_amount: 0
+    computation: getting_up
     applies_cost_basis: contentious
-    params: { derived: "third_of_instruction_fee", note: "Computed by the billing layer via GettingUpFee, not standalone" }
+    params: { note: "Pass instructionFee (the instruction fee allowed); chargeable only once the hearing is confirmed" }
 
   - { code: S6.DRAWING.PLEADING,              schedule: 6, label: "Drawing pleading, plaint, defence, counterclaim, reply, arbitration", rule_reference: "Sch 6, item 4(a)", computation: per_folio, unit_label: folio, units_included: 4, included_amount: 1_100, params: { per_unit: 150 }, applies_cost_basis: contentious }
   - { code: S6.DRAWING.INSOLVENCY_PETITION,   schedule: 6, label: "Drawing insolvency petition or notice of objection", rule_reference: "Sch 6, item 4(b)", computation: per_folio, unit_label: folio, units_included: 6, included_amount: 1_470, params: { per_unit: 150 }, applies_cost_basis: contentious }
@@ -81,7 +82,7 @@ items:
   - { code: S6.PERUSAL.LETTER,              schedule: 6, label: "Perusing necessary letter, per folio", rule_reference: "Sch 6, item 8(c)", computation: per_folio, unit_label: folio, params: { per_unit: 50 }, applies_cost_basis: contentious }
 
   - { code: S6.SERVICE.LOCAL,               schedule: 6, label: "Service within 3 km of High Court or district registry", rule_reference: "Sch 6, item 9(a)", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
-  - { code: S6.SERVICE.PER_KM,              schedule: 6, label: "Service beyond 3 km — 1,400 for first 3 km + ≤35/km", rule_reference: "Sch 6, item 9(a),(b)", computation: per_unit, unit_label: km, units_included: 3, included_amount: 1_400, params: { per_unit: 35 }, applies_cost_basis: contentious }
+  - { code: S6.SERVICE.PER_KM,              schedule: 6, label: "Service beyond 3 km — each additional km, reasonable, not exceeding 35/km (bill with S6.SERVICE.LOCAL; quantity = km over 3)", rule_reference: "Sch 6, item 9(b)", computation: per_unit, unit_label: km, params: { per_unit: 35, bound: max }, applies_cost_basis: contentious }
 
   - { code: S6.EXECUTION.INSTRUCTIONS,      schedule: 6, label: "Instructions to execute decree and drawing", rule_reference: "Sch 6, item 12(a)", computation: flat, included_amount: 1_000, applies_cost_basis: contentious }
   - { code: S6.OBJECTION.INSTRUCTIONS,      schedule: 6, label: "Instructions to prepare objection to execution", rule_reference: "Sch 6, item 13(a)", computation: flat, included_amount: 10_000, applies_cost_basis: contentious }

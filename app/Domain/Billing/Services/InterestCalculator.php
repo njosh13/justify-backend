@@ -11,7 +11,8 @@ use Carbon\CarbonImmutable;
 /**
  * Para 7: simple interest at 14% per annum on costs and disbursements, from the
  * expiry of one month after delivery of the bill, and only where the claim for
- * interest is raised before the bill is paid or tendered in full. Actual/365.
+ * interest is raised before the bill is paid or tendered in full. Actual/365,
+ * rounded once (HALF_UP to the cent) after the whole product.
  */
 final class InterestCalculator
 {
@@ -41,9 +42,10 @@ final class InterestCalculator
 
         $days = (int) $start->diffInDays($end);
 
-        return $principal
-            ->multipliedBy(self::RATE, RoundingMode::Unnecessary)
+        return $principal->toRational()
+            ->multipliedBy(self::RATE)
             ->multipliedBy($days)
-            ->dividedBy(365, RoundingMode::HalfUp);
+            ->dividedBy(365)
+            ->toContext($principal->getContext(), RoundingMode::HalfUp);
     }
 }

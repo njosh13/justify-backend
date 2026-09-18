@@ -2,8 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Domain\Aro\Engine\Band;
+use App\Domain\Aro\Engine\Computations\FlatComputation;
+use App\Domain\Aro\Engine\Computations\PerUnitComputation;
+use App\Domain\Aro\Engine\Computations\TieredComputation;
 use App\Domain\Aro\Engine\Computed;
+use App\Domain\Aro\Engine\FeeBound;
 use App\Domain\Aro\Engine\FolioCounter;
+use App\Domain\Aro\Engine\Posture;
+use App\Domain\Aro\Engine\PostureMultiplier;
+use App\Domain\Aro\Engine\PostureTable;
 use App\Domain\Billing\Services\InterestCalculator;
 use App\Domain\Billing\Services\TaxationRiskScorer;
 use App\Domain\Tax\Vat\VatCalculator;
@@ -97,4 +105,50 @@ describe('VAT / WHT — §8', function () {
             ->and(VatCalculator::taxTypeCode(false, true))->toBe('A')
             ->and(VatCalculator::taxTypeCode(true, false))->toBe('D');
     });
+});
+
+describe('Interest rounding', function () {
+    it('rounds once at the end for a principal with cents', function () {
+        $calc = new InterestCalculator;
+
+        $accrued = $calc->accrued(Money::of('1000000.05', 'KES'), CarbonImmutable::parse('2026-01-01'), CarbonImmutable::parse('2026-02-15'), null, CarbonImmutable::parse('2026-03-03'));
+
+        expect($accrued->getAmount()->toFloat())->toBe(11_506.85);
+    });
+});
+
+describe('Computation guards', function () {
+    $bands = fn () => [
+        new Band(Money::of(0, 'KES'), Money::of(500_000, 'KES'), Money::of(75_000, 'KES'), null, null),
+        new Band(Money::of(500_000, 'KES'), Money::of(1_000_000, 'KES'), Money::of(120_000, 'KES'), null, null),
+        new Band(Money::of(1_000_000, 'KES'), null, null, '0.02', null),
+    ];
+
+    it('rejects a zero basis on a tiered scale', function () use ($bands) {
+        (new TieredComputation('Sch 6', $bands()))->compute(Money::zero('KES'));
+    })->throws(InvalidArgumentException::class, 'positive subject-matter value');
+
+    it('carries a fixed bracket forward as one step', function () use ($bands) {
+        $c = (new TieredComputation('Sch 6', $bands()))->compute(Money::of(3_000_000, 'KES'));
+
+        expect($c->amount->getAmount()->toFloat())->toBe(160_000.0)
+            ->and($c->steps)->toHaveCount(2)
+            ->and($c->provenance())->toBe("Sch 6 band 2: fee as for KES\u{A0}1,000,000.00 = KES\u{A0}120,000.00; Sch 6 band 3: 2% × KES\u{A0}2,000,000.00 = KES\u{A0}40,000.00");
+    });
+
+    it('multiplies a flat fee by the quantity', function () {
+        $c = (new FlatComputation('Sch 12 1(a)', Money::of(42_000, 'KES')))->compute(null, 3);
+
+        expect($c->amount->getAmount()->toFloat())->toBe(126_000.0)
+            ->and($c->bound)->toBe(FeeBound::Prescribed)
+            ->and($c->provenance())->toBe("Sch 12 1(a): prescribed fee × 3 = KES\u{A0}126,000.00");
+    });
+
+    it('rejects a per-unit computation without a quantity', function () {
+        (new PerUnitComputation('Sch 6 4(a)', 4, Money::of(1_100, 'KES'), Money::of(150, 'KES')))->compute(null, 0);
+    })->throws(InvalidArgumentException::class, 'positive quantity');
+
+    it('rejects a posture from the other table', function () {
+        PostureMultiplier::apply(Computed::zero()->add('x', 'x', Money::of(100, 'KES')), Posture::Summary, PostureTable::Undefended);
+    })->throws(InvalidArgumentException::class, 'belongs to item 1(b)');
 });

@@ -10,6 +10,7 @@ items:
     basis_type: value
     computation: tiered
     scale_variant: lower_higher
+    is_instruction_fee: true
     applies_cost_basis: contentious
     bands:
       - { scale: lower,  lower: 0,      upper: 1_000,  fixed: 1_293 }
@@ -32,14 +33,7 @@ items:
       - { scale: higher, lower: 50_000, upper: null,   rate: "0.02" }
 
   - { code: S9.NON_PECUNIARY.UNOPPOSED, schedule: 9, label: "Complaint for non-pecuniary relief — undefended/unopposed", rule_reference: "Sch 9, item 6(2)(b)", computation: discretionary_floor, included_amount: 15_000, applies_cost_basis: contentious }
-  - code: S9.NON_PECUNIARY.OPPOSED
-    schedule: 9
-    label: "Complaint for non-pecuniary relief — opposed, reasonable amount not exceeding 25,000"
-    rule_reference: "Sch 9, item 6(2)(b)"
-    computation: flat
-    included_amount: 25_000
-    applies_cost_basis: contentious
-    params: { is_cap: true, note: "Discretionary amount capped at 25,000 — the seeded figure is the cap" }
+  - { code: S9.NON_PECUNIARY.OPPOSED,   schedule: 9, label: "Complaint for non-pecuniary relief — opposed, a reasonable amount not exceeding 25,000", rule_reference: "Sch 9, item 6(2)(b)", computation: discretionary_cap, included_amount: 25_000, applies_cost_basis: contentious }
   - { code: S9.OTHER,                   schedule: 9, label: "Proceedings not otherwise provided for", rule_reference: "Sch 9, item 6(2)(d)", computation: discretionary_floor, included_amount: 15_000, applies_cost_basis: contentious }
   - { code: S9.ATTEND.TRIBUNAL,         schedule: 9, label: "Necessary attendance on Tribunal other than at hearing", rule_reference: "Sch 9, item 7(a)", computation: flat, included_amount: 500, applies_cost_basis: contentious }
   - { code: S9.ATTEND.OFFICES,          schedule: 9, label: "Attendance at offices of the tribunal", rule_reference: "Sch 9, item 7(b)", computation: flat, included_amount: 300, applies_cost_basis: contentious }
@@ -47,7 +41,7 @@ items:
   - { code: S9.HEARING.SUBSEQUENT_PART, schedule: 9, label: "Hearing — each part of day after the first", rule_reference: "Sch 9, item 7(c)(ii)", computation: per_unit, unit_label: "part of day", params: { per_unit: 2_100 }, applies_cost_basis: contentious }
   - { code: S9.ADJOURNMENT,             schedule: 9, label: "Costs of adjournment where awarded", rule_reference: "Sch 9, item 7(d)", computation: flat, included_amount: 900, applies_cost_basis: contentious }
   - { code: S9.SERVICE.LOCAL,           schedule: 9, label: "Service within 3 km of the Tribunal", rule_reference: "Sch 9, item 7(e)(i)", computation: flat, included_amount: 250, applies_cost_basis: contentious }
-  - { code: S9.SERVICE.PER_KM,          schedule: 9, label: "Service — each additional km over 3, not exceeding 35/km", rule_reference: "Sch 9, item 7(e)(ii)", computation: per_unit, unit_label: km, params: { per_unit: 35, cap: true }, applies_cost_basis: contentious }
+  - { code: S9.SERVICE.PER_KM,          schedule: 9, label: "Service — each additional km over 3, not exceeding 35/km", rule_reference: "Sch 9, item 7(e)(ii)", computation: per_unit, unit_label: km, params: { per_unit: 35, bound: max }, applies_cost_basis: contentious }
   - { code: S9.SERVICE.POST,            schedule: 9, label: "Service by post, if authorized", rule_reference: "Sch 9, item 7(e)(iii)", computation: flat, included_amount: 100, applies_cost_basis: contentious }
   - { code: S9.AFFIDAVIT.SERVICE,       schedule: 9, label: "Drawing and filing affidavit/return of service incl. swearing fee", rule_reference: "Sch 9, item 7(f)", computation: flat, included_amount: 100, applies_cost_basis: contentious }
   - { code: S9.AFFIDAVIT.OTHER,         schedule: 9, label: "Drawing and filing other affidavits — first 4 folios 500, then 100/folio", rule_reference: "Sch 9, item 7(g)", computation: per_folio, unit_label: folio, units_included: 4, included_amount: 500, params: { per_unit: 100 }, applies_cost_basis: contentious }

@@ -64,3 +64,25 @@ it('keeps tiered fees monotonic non-decreasing in the basis', function () {
         }
     }
 });
+
+it('resolves every active head to a computation', function () {
+    $resolver = new Resolver;
+    $items = AroItem::where('is_active', true)->with('bands')->get();
+
+    expect($items)->not->toBeEmpty();
+
+    foreach ($items as $item) {
+        $scales = $item->scale_variant === 'lower_higher' ? ['lower', 'higher'] : [null];
+        foreach ($scales as $scale) {
+            $resolver->computationFor($item, $scale, Money::of(1, 'KES'), Money::of(1, 'KES'));
+        }
+    }
+});
+
+it('uses only known cost-basis and bound vocabularies', function () {
+    expect(AroItem::query()->distinct()->pluck('applies_cost_basis')->all())
+        ->each->toBeIn(['non_contentious', 'contentious', 'contested_only']);
+
+    $bounds = AroItem::query()->get()->map(fn (AroItem $i) => $i->params['bound'] ?? null)->filter()->unique()->values()->all();
+    expect($bounds)->each->toBeIn(['min', 'max']);
+});

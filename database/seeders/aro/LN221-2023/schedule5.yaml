@@ -3,12 +3,11 @@
 items:
   - code: S5.HOURLY
     schedule: 5
-    label: "Agreed hourly rate (Part I) — rate taken from the fee agreement"
+    label: "Agreed hourly rate (Part I) — rate taken from the fee agreement, quantity in hours"
     rule_reference: "Sch 5 Part I, para 2"
-    computation: flat
-    included_amount: 0
+    computation: agreed_rate
     unit_label: hour
-    params: { note: "Quantity × agreed hourly rate from fee_agreements; para 3 floor still applies via the otherwise-applicable schedule unless para 22 election" }
+    params: { note: "Para 3 floor still applies via the otherwise-applicable schedule unless a para 22 election is made (I-8)" }
 
   - { code: S5.INSTRUCTIONS, schedule: 5, label: "Instructions — fair and reasonable fee (no floor stated)", rule_reference: "Sch 5 Part II, item 1", computation: discretionary_floor, included_amount: 0 }
   - { code: S5.DRAWING,      schedule: 5, label: "Drawing",  rule_reference: "Sch 5 Part II, item 2", computation: per_folio, unit_label: folio, params: { per_unit: 250 } }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Aro\Engine\Certificates;
+use App\Domain\Aro\Engine\Computed;
 use App\Domain\Aro\Engine\CostBasis;
 use App\Domain\Aro\Engine\FeeRequest;
 use App\Domain\Aro\Engine\Modifiers\ModifierPipeline;
@@ -15,15 +16,20 @@ use Database\Seeders\AroSeeder;
 
 /**
  * Shared helpers for the ARO golden-case suite (plan §11.1). Each test seeds
- * the published LN221-2023 catalogue and computes through FeeCalculator, so
- * seed data and engine are validated together.
+ * the LN221-2023 catalogue and computes through FeeCalculator, so seed data
+ * and engine are validated together (a deliberate deviation from the plan's
+ * "pure PHP" wording — see Todo.md "Deviations").
  */
 function aroVersion(): AroVersion
 {
     return AroVersion::firstOrFail();
 }
 
-function fee(
+/**
+ * @param  string[]  $modifiers
+ * @param  array<string, int|float>  $modifierAmounts
+ */
+function computed(
     string $code,
     ?float $basis = null,
     ?float $quantity = null,
@@ -33,10 +39,13 @@ function fee(
     array $modifierAmounts = [],
     ?Certificates $certificates = null,
     CostBasis $costBasis = CostBasis::PartyParty,
-): float {
+    ?float $agreedRate = null,
+    ?float $instructionFee = null,
+    bool $contested = false,
+): Computed {
     $calc = new FeeCalculator(new Resolver, new ModifierPipeline);
 
-    $computed = $calc->minimum(new FeeRequest(
+    return $calc->minimum(new FeeRequest(
         version: aroVersion(),
         itemCode: $code,
         basis: $basis === null ? null : Money::of((string) $basis, 'KES'),
@@ -47,9 +56,31 @@ function fee(
         modifierAmounts: collect($modifierAmounts)->map(fn ($v) => Money::of((string) $v, 'KES'))->all(),
         certificates: $certificates,
         costBasis: $costBasis,
+        agreedRate: $agreedRate === null ? null : Money::of((string) $agreedRate, 'KES'),
+        instructionFee: $instructionFee === null ? null : Money::of((string) $instructionFee, 'KES'),
+        contested: $contested,
     ));
+}
 
-    return (float) $computed->amount->getAmount()->toFloat();
+/**
+ * @param  string[]  $modifiers
+ * @param  array<string, int|float>  $modifierAmounts
+ */
+function fee(
+    string $code,
+    ?float $basis = null,
+    ?float $quantity = null,
+    ?string $scale = null,
+    ?Posture $posture = null,
+    array $modifiers = [],
+    array $modifierAmounts = [],
+    ?Certificates $certificates = null,
+    CostBasis $costBasis = CostBasis::PartyParty,
+    ?float $agreedRate = null,
+    ?float $instructionFee = null,
+    bool $contested = false,
+): float {
+    return computed(...func_get_args())->amount->getAmount()->toFloat();
 }
 
 function seedAro(): void

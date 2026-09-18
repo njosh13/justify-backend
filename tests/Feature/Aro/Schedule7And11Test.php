@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Aro\Engine\CostBasis;
+use App\Domain\Aro\Engine\Posture;
 
 beforeEach(fn () => seedAro());
 
@@ -41,5 +42,23 @@ describe('Sch 11 — S11.INSTR', function () {
     it('300,000,000 → 1,490,000', fn () => expect(fee('S11.INSTR', 300_000_000, scale: 'higher'))->toBe(1_490_000.0));
     it('100,000,000 advocate-and-client → 1,035,000', function () {
         expect(fee('S11.INSTR', 100_000_000, scale: 'higher', costBasis: CostBasis::AdvocateClient))->toBe(1_035_000.0);
+    });
+});
+
+describe('Sch 7 posture follows the scale (I-11)', function () {
+    it('applies 65% no-appearance on the lower scale', fn () => expect(fee('S7.INSTR', 150_000, scale: 'lower', posture: Posture::NoAppearance))->toBe(19_500.0));
+    it('applies 75% summary on the higher scale', fn () => expect(fee('S7.INSTR', 150_000, scale: 'higher', posture: Posture::Summary))->toBe(30_000.0));
+
+    it('rejects summary on the lower scale', function () {
+        fee('S7.INSTR', 150_000, scale: 'lower', posture: Posture::Summary);
+    })->throws(InvalidArgumentException::class, 'does not apply to the undefended table');
+
+    it('carries the 50,000 ceiling on the no-sum undefended head', function () {
+        $c = computed('S7.INSTR.NO_SUM.UNDEFENDED');
+
+        expect($c->amount->getAmount()->toFloat())->toBe(20_000.0)
+            ->and($c->isDiscretionary())->toBeTrue()
+            ->and($c->ceiling?->getAmount()->toFloat())->toBe(50_000.0)
+            ->and($c->provenance())->toContain("not to exceed KES\u{A0}50,000.00");
     });
 });

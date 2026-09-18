@@ -17,7 +17,7 @@ describe('Sch 3 — companies', function () {
         $v = aroVersion();
         $calc = new FeeCalculator(new Resolver, new ModifierPipeline);
         $c = $calc->minimum(new FeeRequest(version: $v, itemCode: 'S3.INCORPORATION'));
-        expect($c->discretionary)->toBeTrue();
+        expect($c->isDiscretionary())->toBeTrue();
     });
 });
 
@@ -39,6 +39,9 @@ describe('Sch 5 — units, debt collection, chattels', function () {
     it('rounds part-units up', fn () => expect(fee('S5.ATTENDANCE', quantity: 2.4))->toBe(3_000.0));
     it('charges time engaged at 7,000 per 15 minutes', fn () => expect(fee('S5.TIME_ENGAGED', quantity: 8))->toBe(56_000.0));
     it('charges journey day rate', fn () => expect(fee('S5.JOURNEY.DAY'))->toBe(15_000.0));
+    it('charges journey day rate per day travelled', fn () => expect(fee('S5.JOURNEY.DAY', quantity: 3))->toBe(45_000.0));
+    it('charges the agreed hourly rate for the hours engaged', fn () => expect(fee('S5.HOURLY', quantity: 2.5, agreedRate: 12_000))->toBe(30_000.0));
+    it('requires an agreed rate for the hourly head', fn () => fee('S5.HOURLY', quantity: 2))->throws(InvalidArgumentException::class, 'agreedRate');
     it('charges journey hourly rate', fn () => expect(fee('S5.JOURNEY.HOUR', quantity: 3))->toBe(7_500.0));
     it('sets opinion floor at 35,000', fn () => expect(fee('S5.OPINION'))->toBe(35_000.0));
     it('charges chattels ≤50,000 flat', fn () => expect(fee('S5.CHATTELS.SMALL'))->toBe(6_000.0));

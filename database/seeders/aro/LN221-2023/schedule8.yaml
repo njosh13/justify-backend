@@ -10,6 +10,7 @@ items:
     basis_type: value
     computation: tiered
     scale_variant: lower_higher
+    is_instruction_fee: true
     applies_cost_basis: contentious
     bands:
       - { scale: lower,  lower: 0,       upper: 10_000,   fixed: 1_293 }
@@ -34,10 +35,11 @@ items:
   - { code: S8.HEARING.SUBSEQUENT_PART, schedule: 8, label: "Hearing — each part of day after the first", rule_reference: "Sch 8, item 8(c)(ii)", computation: per_unit, unit_label: "part of day", params: { per_unit: 2_100 }, applies_cost_basis: contentious }
   - { code: S8.ADJOURNMENT,             schedule: 8, label: "Costs of adjournment where awarded", rule_reference: "Sch 8, item 8(d)", computation: flat, included_amount: 900, applies_cost_basis: contentious }
   - { code: S8.SERVICE.LOCAL,           schedule: 8, label: "Service within 3 km of the Tribunal", rule_reference: "Sch 8, item 8(e)(i)", computation: flat, included_amount: 1_400, applies_cost_basis: contentious }
-  - { code: S8.SERVICE.PER_KM,          schedule: 8, label: "Service — each additional km over 3, not exceeding 35/km", rule_reference: "Sch 8, item 8(e)(ii)", computation: per_unit, unit_label: km, params: { per_unit: 35, cap: true }, applies_cost_basis: contentious }
+  - { code: S8.SERVICE.PER_KM,          schedule: 8, label: "Service — each additional km over 3, not exceeding 35/km", rule_reference: "Sch 8, item 8(e)(ii)", computation: per_unit, unit_label: km, params: { per_unit: 35, bound: max }, applies_cost_basis: contentious }
   - { code: S8.SERVICE.POST,            schedule: 8, label: "Service by post, if authorized", rule_reference: "Sch 8, item 8(e)(iii)", computation: flat, included_amount: 100, applies_cost_basis: contentious }
   - { code: S8.AFFIDAVIT.SERVICE,       schedule: 8, label: "Drawing and filing affidavit/return of service incl. swearing fee", rule_reference: "Sch 8, item 8(f)", computation: flat, included_amount: 100, applies_cost_basis: contentious }
   - { code: S8.AFFIDAVIT.OTHER,         schedule: 8, label: "Drawing and filing other affidavits — first 4 folios 500, then 100/folio", rule_reference: "Sch 8, item 8(g)", computation: per_folio, unit_label: folio, units_included: 4, included_amount: 500, params: { per_unit: 100 }, applies_cost_basis: contentious }
+  - { code: S8.GETTING_UP,              schedule: 8, label: "Getting up and preparing case for trial — not less than 1/3 of instruction fee (pass instructionFee)", rule_reference: "Sch 8, para 2", computation: getting_up, applies_cost_basis: contentious }
 
 modifiers:
   - { code: S8.DISTRESS, label: "Leave to levy distress — half of item 7(2)(a) fee", rule_reference: "Sch 8, item 7(2)(c)", op: multiply, value: "0.5", applies_to: [S8.INSTR], condition_key: levy_distress, sort_order: 20 }

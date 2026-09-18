@@ -31,8 +31,8 @@ final class BasePlusRateComputation implements Computation
 
     public function compute(?Money $basis, int|float|null $quantity = null): Computed
     {
-        if ($basis === null) {
-            throw new \InvalidArgumentException("{$this->ruleRef} requires a subject-matter value");
+        if ($basis === null || ! $basis->isPositive()) {
+            throw new \InvalidArgumentException("{$this->ruleRef} requires a positive subject-matter value (para 21)");
         }
 
         foreach ($this->bands as $i => $band) {

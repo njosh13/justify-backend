@@ -10,6 +10,7 @@ use App\Domain\Aro\Models\AroItem;
 use App\Domain\Aro\Models\AroModifier;
 use App\Domain\Aro\Models\AroVersion;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -17,10 +18,14 @@ use Symfony\Component\Yaml\Yaml;
  *
  * Convention: all money fields are written in WHOLE KES in the YAML and are
  * converted to cents here. Fields converted: item.included_amount, params
- * {per_unit, unit_size, half_unit_threshold, floor, unit_bands[].per_unit},
+ * {per_unit, unit_size, half_unit_threshold, floor, ceiling, unit_bands[].per_unit},
  * band.{lower,upper,fixed,floor}, and modifier.value when the op is
  * add/floor/cap (multiply and floor_ratio_of_base values stay decimal
  * strings).
+ *
+ * Re-seeding a draft version is a full sync: rows whose code has left the
+ * YAML are deleted, and a version already marked `reviewed` keeps that status.
+ * A published version is immutable and cannot be re-seeded.
  */
 final class AroSeeder extends Seeder
 {
@@ -30,22 +35,25 @@ final class AroSeeder extends Seeder
 
         $meta = Yaml::parseFile("{$dir}/version.yaml");
 
-        $existing = AroVersion::where('code', $meta['code'])->first();
-        if ($existing?->status === 'published') {
-            throw new \RuntimeException("ARO version {$meta['code']} is published — published law is immutable; create a new version instead of reseeding in place");
+        $version = AroVersion::firstOrNew(['code' => $meta['code']]);
+        if ($version->status === 'published') {
+            throw new RuntimeException("ARO version {$meta['code']} is published — published law is immutable; create a new version instead of reseeding in place");
         }
 
-        $version = AroVersion::updateOrCreate(
-            ['code' => $meta['code']],
-            [
-                'legal_notice' => $meta['legal_notice'],
-                'effective_from' => $meta['effective_from'],
-                'effective_to' => $meta['effective_to'] ?? null,
-                'source_url' => $meta['source_url'] ?? null,
-                'source_sha256' => $meta['source_sha256'] ?? null,
-                'status' => $meta['status'] ?? 'draft',
-            ],
-        );
+        $version->fill([
+            'legal_notice' => $meta['legal_notice'],
+            'effective_from' => $meta['effective_from'],
+            'effective_to' => $meta['effective_to'] ?? null,
+            'source_url' => $meta['source_url'] ?? null,
+            'source_sha256' => $meta['source_sha256'] ?? null,
+        ]);
+        if (! $version->exists) {
+            $version->status = $meta['status'] ?? 'draft';
+        }
+        $version->save();
+
+        $itemCodes = [];
+        $modifierCodes = [];
 
         foreach (glob("{$dir}/*.yaml") ?: [] as $file) {
             if (in_array(basename($file), ['version.yaml', 'interpretations.yaml'], true)) {
@@ -54,6 +62,8 @@ final class AroSeeder extends Seeder
             $data = Yaml::parseFile($file);
 
             foreach ($data['items'] ?? [] as $row) {
+                $itemCodes[] = $row['code'];
+
                 $item = AroItem::updateOrCreate(
                     ['aro_version_id' => $version->id, 'code' => $row['code']],
                     [
@@ -88,6 +98,8 @@ final class AroSeeder extends Seeder
             }
 
             foreach ($data['modifiers'] ?? [] as $row) {
+                $modifierCodes[] = $row['code'];
+
                 $op = ModifierOp::from($row['op']);
                 $isAmount = in_array($op, [ModifierOp::Add, ModifierOp::Floor, ModifierOp::Cap], true);
 
@@ -106,8 +118,11 @@ final class AroSeeder extends Seeder
             }
         }
 
+        $interpretationCodes = [];
         $interpretations = Yaml::parseFile("{$dir}/interpretations.yaml");
         foreach ($interpretations['interpretations'] ?? [] as $row) {
+            $interpretationCodes[] = $row['code'];
+
             AroInterpretation::updateOrCreate(
                 ['aro_version_id' => $version->id, 'code' => $row['code']],
                 [
@@ -120,6 +135,10 @@ final class AroSeeder extends Seeder
                 ],
             );
         }
+
+        $version->items()->whereNotIn('code', $itemCodes)->delete();
+        $version->modifiers()->whereNotIn('code', $modifierCodes)->delete();
+        $version->interpretations()->whereNull('firm_id')->whereNotIn('code', $interpretationCodes)->delete();
     }
 
     /**
@@ -132,7 +151,7 @@ final class AroSeeder extends Seeder
             return null;
         }
 
-        foreach (['per_unit', 'unit_size', 'half_unit_threshold', 'floor', 'cap'] as $key) {
+        foreach (['per_unit', 'unit_size', 'half_unit_threshold', 'floor', 'ceiling'] as $key) {
             if (isset($params[$key])) {
                 $params["{$key}_cents"] = $params[$key] * 100;
                 unset($params[$key]);

@@ -7,13 +7,14 @@ dependencies.
 
 Markers: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
-**Status 2026-09-16:** Phases A–D complete and green (162 tests, 122 ARO
-golden/engine cases, PHPStan + Pint clean). Deviations from plan while
+**Status 2026-09-17:** Phases A–D complete and green (231 tests, 1 skipped for
+I-10; PHPStan level 7 + Pint clean; CI runs the suite on Postgres 16 / PHP 8.4).
+Audit fixes of 2026-09-17 are listed under Phase E below. Deviations from plan while
 implementing: `brick/money` 0.15 uses `formatToLocale()` (not `formatTo()`)
 and camelCase `RoundingMode::HalfUp`; `users.id` stays bigint so
 `reviewed_by`/`decided_by` FKs are bigint, not uuid; Sch 4/6/12 "per 15 min"
-heads are `per_unit` items; S6.GETTING_UP is seeded as a derived marker and
-computed via `GettingUpFee` at bill time; VatCalculator/WithholdingTaxCalculator
+heads are `per_unit` items; S6.GETTING_UP / S8.GETTING_UP are `getting_up` heads that
+derive one-third of the `instructionFee` passed on the request; VatCalculator/WithholdingTaxCalculator
 created early under `app/Domain/Tax/Vat/` to cover the §8 golden cases.
 
 ## Recorded decisions
@@ -37,8 +38,10 @@ created early under `app/Domain/Tax/Vat/` to cover the §8 golden cases.
 - [x] `composer require spatie/laravel-data` — DTOs for engine inputs/outputs
 - [x] `composer require symfony/yaml` — seed file format (plan §5)
 - [x] Create `app/Domain/Aro/` skeleton per plan §2.4
-- [x] Pest: add `tests/Unit/Aro/` — engine tests must run with **no DB**
-      (pure PHP, `brick/money` only)
+- [x] Pest: `tests/Unit/Aro/` holds the pure-engine invariants (no DB); the
+      schedule golden cases live in `tests/Feature/Aro/` and run through the
+      seeded catalogue, because the Resolver reads `aro_items` rows and a golden
+      case must prove seed data and engine together (plan §11 updated)
 
 ## Phase B — ARO engine core (pure PHP — plan §4.1–4.7, 4.11–4.12)
 
@@ -112,6 +115,34 @@ The resolver + FeeCalculator are the only places the engine touches the DB.
 - [x] Property tests: monotonic tiered fees, band floors, uplift = exactly 1.5×,
       every `Computed` has steps + provenance (§11.2)
 
+## Phase E — audit fixes (2026-09-17)
+
+From the review of the Devin build against the Order PDF.
+
+- [x] Sch 10 Part B only in contested matters: `contested_only` cost basis +
+      `FeeRequest::$contested` (I-12); uncontested heads marked `non_contentious`
+- [x] "Not exceeding" heads are ceilings, not floors: `FeeBound` + `ceiling`
+      on `Computed`; `discretionary_cap`, `params.bound`, `params.ceiling`
+      (Sch 9 6(2)(b) opposed, Sch 10 7(b) commissions, per-km service, Sch 7 item 2)
+- [x] Posture bound to its table (`params.posture_table`; Sch 7 per scale, I-11);
+      wrong-table and no-table postures rejected
+- [x] Certificates restricted to Sch 6 instruction fees
+- [x] `InterestCalculator` rounds once at the end (sub-cent principals no longer throw)
+- [x] Basis ≤ 0 rejected; per-unit heads need quantity ≥ 1; flat heads × whole quantity
+- [x] Pointer and inactive heads throw instead of returning 0; `S12.CAUTION` inactive
+- [x] `S5.HOURLY` = `agreed_rate`; `S6.GETTING_UP` / `S8.GETTING_UP` = `getting_up`
+- [x] Unknown modifier codes throw
+- [x] Sch 1 rules 29, 34, 35, 36, 41, 46 seeded as modifiers; para 32 cited correctly
+- [x] `S6.SERVICE.PER_KM` split from the 3-km flat; `cap: true` param bug removed
+- [x] Provenance: replace steps print the resulting figure; one carry step per fixed bracket run
+- [x] Seeder prunes rows dropped from YAML; keeps `reviewed` status
+- [x] `aro_bands.rate` cast matches column scale; `firm_id` on interpretations documented
+- [x] CI: Postgres 16 service, PHP 8.4, `pdo_pgsql`
+- [x] Plan §4/§5/§6/§11/§14 corrected (debt collection shape, service split,
+      I-9…I-12, test layout, resolved open items)
+- [ ] Tests compare money as `float` after `round()` — exact at these magnitudes;
+      switch to decimal-string assertions when the I-7 shilling rounding lands
+
 ---
 
 ## Deferred — infrastructure (plan Phases 0/2 remainder)
@@ -152,6 +183,5 @@ Do after Phase D is green:
 - [!] KRA OSCU Spec v2.0 PDF + sandbox credentials — validate §9.3 field names
 - [!] Sch 10 item 1(a) lower-bracket fees — missing from local PDF AND Kenya Law
       web text; pull the original enactment PDF / Gazette supplement (§14.1)
-- [!] Building-society rule paragraph number — cited as "para 34", verify (§14.4)
 - [!] WHT rate (5%) + monthly threshold (24,000) — confirm with tax advisor (§14.8)
 - [!] KRA third-party-integrator listing decision — product call (§14.9)

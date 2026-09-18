@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property string $id
  * @property string $aro_version_id
+ * @property string|null $firm_id set when a firm adopts its own reading (plan §6)
  * @property string $code
  * @property string $rule_reference
  * @property string $question
@@ -29,7 +30,7 @@ final class AroInterpretation extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'aro_version_id', 'code', 'rule_reference', 'question', 'decision',
+        'aro_version_id', 'firm_id', 'code', 'rule_reference', 'question', 'decision',
         'rationale', 'decided_by', 'decided_at', 'status',
     ];
 

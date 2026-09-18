@@ -64,7 +64,7 @@
 - **Laravel** owns identity, tenancy, the ARO engine, bills, tax and eTIMS. PHP 8.4, PostgreSQL 16, Redis, Horizon.
 - **Inertia v3 + React** for the admin console only: ARO version management, rule data entry with review workflow, interpretations register, eTIMS device onboarding, tenant support tooling. This is internal; it does not need to be pretty, it needs to be auditable.
 - **TanStack Start** stays as the product. It stops calling Supabase directly and calls `/api/v1`. Live previews call `POST /api/v1/aro/preview`, which runs the same engine the bill uses — one source of truth.
-- **Auth:** Laravel Sanctum with bearer tokens everywhere — a short-lived access token (15 minutes) plus a rotating refresh token via `POST /api/v1/auth/refresh`. Cookies are not used: the client also ships as a Tauri desktop/mobile app whose origin cannot share a same-site cookie with the API host, and one auth path is simpler than two (see `docs/FRONTEND_PLAN.md` §4.2). Roles via `spatie/laravel-permission` scoped by firm.
+- **Auth:** Laravel Sanctum with bearer tokens everywhere — a short-lived access token (15 minutes) plus a rotating refresh token via `POST /api/v1/auth/refresh`. Cookies are not used: the client also ships as a Tauri desktop/mobile app whose origin cannot share a same-site cookie with the API host, and one auth path is simpler than two (see the frontend plan, §4.2 — kept with the TanStack client, not in this repo). Roles via `spatie/laravel-permission` scoped by firm.
 
 ### 2.2 Tenancy
 
@@ -645,7 +645,7 @@ Schedule 1 Second Scale examples as modifier chains (all relative to the grantee
 | Grantor's advocate, discharge (e)                            | `multiply 0.25`, `floor 15,000`                                         |
 | Equitable mortgage by deposit, creation (Note 1(a))          | `multiply 0.5`, `floor 12,500`                                          |
 | Discharge of equitable mortgage (Note 1(b))                  | `multiply 0.15`, `floor 10,000`, `cap 42,000`                           |
-| Building society printed form (para 34)                      | `multiply 0.6667`, `floor_ratio_of_base 0.5`                            |
+| Building society printed form (para 32)                      | `multiply 0.6667`, `floor_ratio_of_base 0.5`                            |
 | Vendor's advocate prepares no agreement (para 18(a) proviso) | `multiply 0.6667` on First Scale                                        |
 | Second security, same grantee (Note 5)                       | separate line: `multiply 0.25`; third and later: `multiply 0.10`        |
 | Second property in one charge (Note 6)                       | separate line: `multiply 0.10`; third and later: `multiply 0.05`        |
@@ -848,10 +848,12 @@ final class InterestCalculator
 
         $days = $start->diffInDays($end);
 
-        return $principal
-            ->multipliedBy(self::RATE, RoundingMode::UNNECESSARY)
+        // One rounding, at the end: principal × rate × days may not be representable in cents.
+        return $principal->toRational()
+            ->multipliedBy(self::RATE)
             ->multipliedBy($days)
-            ->dividedBy(365, RoundingMode::HALF_UP);
+            ->dividedBy(365)
+            ->toContext($principal->getContext(), RoundingMode::HalfUp);
     }
 }
 ```
@@ -870,6 +872,20 @@ final class TaxationRiskScorer
 ```
 
 Pre-filing, the same class scores a draft bill: proportion of lines that are discretionary uplifts without justification, lines above scale with no para 4/5 note, disbursements without vouchers (para 74).
+
+### 4.12a Implementation notes (2026-09-17 audit fixes)
+
+The code in `app/Domain/Aro` departs from the snippets above in these ways; the snippets are kept as the design record.
+
+- `Computed` carries a `FeeBound` (`prescribed` | `minimum` | `maximum`) and an optional `ceiling`, so "not exceeding" heads (Sch 9 item 6(2)(b) opposed, Sch 10 item 7(b) commissions, the per-km service allowances) are never reported as floors, and "not less than 20,000 … not to exceed 50,000" (Sch 7 item 2) keeps both limits. Seeds express this with `computation: discretionary_cap` or `params: { bound: min|max, ceiling: N }`.
+- `PostureMultiplier::apply()` takes a `PostureTable`; items name their table (`params.posture_table: a|b`, or per scale for Sch 7). A posture from the other table, or any posture on a head with no value table, is rejected (I-1, I-11).
+- Certificates (Sch 6 provisos (ii)/(iii)) are accepted on Schedule 6 instruction fees only.
+- `applies_cost_basis` has a third value, `contested_only`, used by Sch 10's neutral heads; `FeeRequest::$contested` decides the Part B uplift (I-12).
+- `S5.HOURLY` is `computation: agreed_rate` (needs `FeeRequest::$agreedRate`); `S6.GETTING_UP` and `S8.GETTING_UP` are `computation: getting_up` (need `FeeRequest::$instructionFee`). Pointer heads and inactive heads throw from `FeeCalculator` rather than returning zero.
+- Value-based computations reject a basis ≤ 0; per-unit heads require a quantity ≥ 1; flat heads multiply by a whole quantity (three patents, three travel days).
+- Unknown modifier codes throw. Provenance prints a replacing step as the resulting figure, and fixed brackets below the basis collapse into one "fee as for" step.
+- `InterestCalculator` rounds once, after the whole product (a principal with cents no longer throws).
+- `AroSeeder` is a full sync for draft versions (rows removed from YAML are deleted; a `reviewed` status survives a reseed).
 
 ### 4.13 Bill assembler
 
@@ -940,7 +956,7 @@ Flat fees per particular (registration, opposition, renewal, assignment, search)
 | `S5.OPINION`         | Part II item 6      | discretionary_floor 35,000                                                                                              |
 | `S5.JOURNEY.DAY`     | Part II item 6      | flat 15,000 per day of ≥7 hours                                                                                         |
 | `S5.JOURNEY.HOUR`    | Part II item 6      | per_unit hour @2,500                                                                                                    |
-| `S5.DEBT_COLLECTION` | Part II item 7      | tiered: (0–100k] 10%; (100k–500k] 5%; (500k–2M] 3%; >2M 1.5%                                                            |
+| `S5.DEBT_COLLECTION` | Part II item 7      | base_plus_rate (the Order states a base per bracket; bases are not continuous): ≤100k 10%; 100k–500k 10,000 + 5% over 100k; 500k–2M 50,000 + 3% over 500k; >2M 100,000 + 1.5% over 2M |
 | `S5.CHATTELS.SMALL`  | Chattels transfer   | flat 6,000 (≤50,000 secured)                                                                                            |
 | `S5.CHATTELS.LARGE`  | Chattels transfer   | `S1.SECURITY.GRANTEE` ×0.5 (>50,000 secured)                                                                            |
 
@@ -978,7 +994,7 @@ Modifiers: `S5.DEBT.ONE_LETTER` ×0.5 floor 1,000.
 | `S6.ATTEND.COURT.DAY`             | item 7(d)          | —        | lower 10,000 / higher 15,000           |
 | `S6.PERUSAL.ROUTINE`              | item 8(b)          | —        | flat 50                                |
 | `S6.SERVICE.LOCAL`                | item 9(a)          | —        | flat 1,400 (within 3 km)               |
-| `S6.SERVICE.PER_KM`               | item 9(b)          | km       | per_unit km @35 (beyond 3 km)          |
+| `S6.SERVICE.PER_KM`               | item 9(b)          | km       | per_unit km @35 beyond 3 km, **ceiling** (bound max); billed with `S6.SERVICE.LOCAL` |
 | `S6.EXECUTION.INSTRUCTIONS`       | item 12(a)         | —        | flat 1,000                             |
 | `S6.OBJECTION.INSTRUCTIONS`       | item 13(a)         | —        | flat 10,000                            |
 | `S6.GARNISHEE.UNOPPOSED`          | item 14(a)         | —        | flat 4,200                             |
@@ -1010,7 +1026,7 @@ Lower scale where no defence or other denial of liability filed; higher scale ot
 
 ### Schedules 8 and 9 — Landlord & Tenant and Rent Restriction tribunals
 
-Seed from the Order's tables (fixed fees keyed to relief sought; Sch 8 item (b): non-pecuniary relief ≥2,940 unopposed / ≥23,520 opposed). Confirm whether Part B uplift applies (§14).
+Seed from the Order's tables (fixed fees keyed to relief sought; Sch 8 item (b): non-pecuniary relief ≥2,940 unopposed / ≥23,520 opposed). Part B ×1.5 is present in both schedules (confirmed 2026-09-16).
 
 ### Schedule 10 — probate and administration (Part B = A × 1.5 in contested matters)
 
@@ -1073,6 +1089,10 @@ These are places where the published text is ambiguous or self-contradictory. Ea
 | I-6 | Sch 6 para 2 getting-up       | "not less than one-third of the instruction fee allowed on taxation" — party-and-party or advocate-and-client base.                                                   | One-third of the party-and-party instruction fee, then the Part B 50% uplift applies to the total.                                                                                       | Part B says "the fees prescribed in A above, increased by 50%" — the uplift is applied once, to the whole.                                                                   |
 | I-7 | Rounding                      | Order figures are whole shillings; percentages produce cents.                                                                                                         | Compute in cents; round each bill line HALF_UP to the shilling; totals are sums of rounded lines.                                                                                        | Avoids penny drift between preview and bill. Firm-configurable.                                                                                                              |
 | I-8 | Sch 5 Part I hourly vs para 3 | Does an agreed hourly rate escape the schedule minimum?                                                                                                               | No. Hourly billing is permitted, but the total charged for a matter to which another schedule applies may not fall below that schedule's fee unless para 22 election is made in writing. | Para 3 is absolute; para 22(2) confirms election cannot reduce below scale.                                                                                                  |
+| I-9 | Sch 10 item 1(a)              | The fee column for gross estate ≤ 1,000,000 is blank in both the Kenya Law PDF and web text.                                                                              | Seed the (0–1M] band as 5% provisionally; replace with the fixed brackets once transcribed from the original enactment.                                                     | The >1M rule is explicit (5% of the first 1,000,000 plus 1% of the excess); the provisional band keeps the >1M computation exact while flagging small estates. **Proposed.** |
+| I-10 | Sch 10 item 1(g)             | Literal "2,103 per 20,000 of net estate × number of entries" gives 210,300 for a 400,000 estate with 5 entries; this plan's worked case said 52,575.                     | Seed the literal reading; golden test skipped until reconciled against taxing-officer practice.                                                                              | 52,575 matches no reading of the published words. **Proposed.**                                                                                                              |
+| I-11 | Sch 7 item 1(a)–(c)          | Sch 7's posture multipliers cite "item 1(a)/(b)" but its table is split lower/higher, not undefended/defended.                                                          | 65% attaches to the lower scale (no defence filed); 75% and 85% to the higher scale.                                                                                         | The Note to item 1 ties the lower scale to "no defence or other denial of liability", the same condition as Sch 6's table (a).                                             |
+| I-12 | Sch 10 Part B                | "In contested matter under the law, the fees as between advocate and client shall be … increased by 50%" — does the uplift reach uncontested probate work?                | No. Heads contested by nature always uplift; uncontested heads never; neutral heads (drawing, perusing, letters, attendances, inventory) uplift only when the matter is flagged contested (`FeeRequest::$contested`). | Every other Part B opens "As between advocate and client the minimum fee shall be"; Sch 10 alone qualifies it with "in contested matter".                                   |
 
 ---
 
@@ -1369,11 +1389,11 @@ Admin (Inertia, `/admin`): ARO versions and items with a two-person review befor
 
 ## 11. Tests
 
-Pest. Three layers: engine golden tests (pure PHP, no DB, run in milliseconds), service/HTTP tests (Postgres, seeded ARO), and external contract tests (eTIMS sandbox, nightly).
+Pest. Three layers: engine invariants (pure PHP, `tests/Unit/Aro`), golden cases and service/HTTP tests (seeded ARO catalogue, `tests/Feature/Aro`; CI runs them on Postgres), and external contract tests (eTIMS sandbox, nightly). The golden cases go through `FeeCalculator` on purpose: the Resolver reads `aro_items` rows, so a golden case proves the seed data and the engine together.
 
 ### 11.1 Golden cases from the Order
 
-Each row becomes one `it(...)` in `tests/Unit/Aro/<Schedule>Test.php`. Amounts in KES; expected values are exact before line rounding unless marked "→ rounded".
+Each row becomes one `it(...)` in `tests/Feature/Aro/<Schedule>Test.php`. Amounts in KES; expected values are exact before line rounding unless marked "→ rounded".
 
 **Schedule 1, First Scale (`S1.SALE`)**
 
@@ -1482,7 +1502,7 @@ Each row becomes one `it(...)` in `tests/Unit/Aro/<Schedule>Test.php`. Amounts i
 | `S6.DRAWING.PLEADING`, 3 folios                                                | 1,100                     | ≤4 folios                                     |
 | `S6.DRAWING.PLEADING`, 6 folios                                                | 1,400                     | 1,100 + 2 × 150                               |
 | `S6.ATTEND.COURT.DAY`, lower / higher                                          | 10,000 / 15,000           | item 7(d)                                     |
-| `S6.SERVICE.PER_KM`, 10 km                                                     | 1,400 + 7 × 35 = 1,645    | item 9                                        |
+| `S6.SERVICE.LOCAL` + `S6.SERVICE.PER_KM` 7 km                                   | 1,400 + 7 × 35 = 1,645; per-km line is a ceiling | item 9                                        |
 | possession suit: arrears 200,000, annual rent 600,000, capital value 5,000,000 | basis 800,000             | proviso (iv): arrears + max(600,000; 500,000) |
 
 **Schedule 7 (`S7.INSTR`)**
@@ -1505,7 +1525,7 @@ Each row becomes one `it(...)` in `tests/Unit/Aro/<Schedule>Test.php`. Amounts i
 | uncontested grant, 10,000,000             | 140,000                         |                                 |
 | contested grant, 3,000,000                | ≥140,000                        | item 1(d) twice                 |
 | contested re-sealing, 3,000,000           | 56,000                          | item 1(b) four-fifths           |
-| inventory: net estate 400,000, 5 entries  | 52,575                          | 2,103 × 20 × 5                  |
+| inventory: net estate 400,000, 5 entries  | **unreconciled** (I-10): literal text gives 20 units × 5 entries × 2,103 = 210,300; 52,575 = 25 × 2,103 matches no reading of the words | test skipped until resolved |
 | inventory: net estate 20,000, 1 entry     | 3,000                           | 2,103 → floor 3,000             |
 | brackets ≤1,000,000                       | **pending transcription** (§14) |                                 |
 
@@ -1585,7 +1605,7 @@ Each row becomes one `it(...)` in `tests/Unit/Aro/<Schedule>Test.php`. Amounts i
 
 1. `supabase db dump --schema public > docs/prototype/supabase-schema.sql` and dump the bodies of `compute_fee_schedule_minimum` and `get_matter_billing_shortfall`. Keep them in `docs/prototype/` as the record of what the prototype did; they are not ported.
 2. Export `firms`, `profiles`, `clients`, `matters`, `time_entries`, `bill_line_items`, `billing_rates`, `fee_schedule_items` to CSV. Write a one-off `php artisan justify:import-prototype` that maps: `profiles` → `users` + `firm_user`; `bill_line_items` → `chargeable_items` (`is_disbursement` → `kind = disbursement`; everything else `fee`); `fee_schedule_items.id` → `aro_items.code` via a hand-maintained map; `matters.primary_fee_schedule_item_id`/`fee_basis_value`/`is_fee_schedule_exempt` → `matter_classifications`.
-3. TanStack: replace `supabase-js` calls with `backendFetch<T>` and hand-written per-feature wire types (`docs/FRONTEND_PLAN.md` §4.1) — no OpenAPI tooling; Laravel API Resources are the contract, so keep response shapes stable and note every field change in the PR for the frontend's `*-wire.ts`. Delete `types/supabase.ts`. Fix the two broken `invalidateQueries` keys (`LineItems.tsx:118`, `Tabs.tsx:363/385`) as part of the switch — or rather, they disappear with the rewrite of those components against the new API.
+3. TanStack: replace `supabase-js` calls with `backendFetch<T>` and hand-written per-feature wire types (frontend plan §4.1, kept with the TanStack client) — no OpenAPI tooling; Laravel API Resources are the contract, so keep response shapes stable and note every field change in the PR for the frontend's `*-wire.ts`. Delete `types/supabase.ts`. Fix the two broken `invalidateQueries` keys (`LineItems.tsx:118`, `Tabs.tsx:363/385`) as part of the switch — or rather, they disappear with the rewrite of those components against the new API.
 4. Auth cut-over: import users with forced password reset; Sanctum SPA cookies on `app.justify.<tld>` with API on `api.justify.<tld>`.
 
 ---
@@ -1611,9 +1631,9 @@ Total: ~11.5 weeks to a certified, billing-grade system. Phases 1 and 2 are the 
 ## 14. Open items to verify
 
 1. **Schedule 10 item 1(a) lower brackets** — the fee column for gross estate ≤1,000,000 did not survive the web transcription. Transcribe from `docs/The Advocates (Remuneration) Order.pdf` (Schedule 10, near page 46–48) before seeding; add golden tests once known.
-2. **Schedules 8 and 9 Part B** — confirm whether the 50% advocate-and-client uplift applies to the two rent tribunals' schedules as it does to 6, 7, 10 and 11.
-3. **Schedule 4 table** — transcribe all trade-mark particulars from the PDF.
-4. **Sch 1 building-society rule number** — cited here as "para 34"; confirm the paragraph number in the current text (rules 27–41 govern Schedule 1).
+2. **Schedules 8 and 9 Part B** — resolved 2026-09-16: both schedules carry a Part B "increased by 50%" (PDF pp. 40, 42).
+3. **Schedule 4 table** — resolved 2026-09-16: transcribed and cross-checked against the PDF (all figures match).
+4. **Sch 1 building-society rule number** — resolved 2026-09-17: it is **para 32** ("Building society mortgagee", PDF p. 8); seeds and §4.6 corrected.
 5. **ARO amendments after 31 Dec 2022** — none found at the time of writing; the LSK has circulated draft revised scales in the past. Watch the Kenya Gazette; the `aro_versions` design absorbs a new order without engine changes.
 6. **eTIMS field names** — validate every field in §9.3 against the KRA OSCU Specification v2.0 PDF and the sandbox before implementation; KRA revises the spec and endpoint names (`saveTrnsSalesOsdc` vs newer variants).
 7. **Legal-services item classification code** — pick the exact `itemClsCd` from the firm's pulled `selectItemClsList`; `80121600` is a placeholder from the UNSPSC family.

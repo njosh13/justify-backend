@@ -12,6 +12,7 @@ items:
     scale_variant: lower_higher
     is_instruction_fee: true
     applies_cost_basis: contentious
+    params: { posture_table: { lower: a, higher: b } }
     bands:
       - { scale: lower,  lower: 0,         upper: 50_000,    fixed: 10_000 }
       - { scale: lower,  lower: 50_000,    upper: 100_000,   fixed: 15_000 }
@@ -28,7 +29,7 @@ items:
       - { scale: higher, lower: 1_000_000, upper: 2_000_000, fixed: 120_000 }
       - { scale: higher, lower: 2_000_000, upper: null,      rate: "0.025" }
 
-  - { code: S7.INSTR.NO_SUM.UNDEFENDED,    schedule: 7, label: "Instruction fee — no sum sued, undefended", rule_reference: "Sch 7, item 2", computation: discretionary_floor, included_amount: 20_000, is_instruction_fee: true, applies_cost_basis: contentious }
+  - { code: S7.INSTR.NO_SUM.UNDEFENDED,    schedule: 7, label: "Instruction fee — no sum sued, undefended (not less than 20,000, not to exceed 50,000)", rule_reference: "Sch 7, item 2", computation: discretionary_floor, included_amount: 20_000, params: { ceiling: 50_000 }, is_instruction_fee: true, applies_cost_basis: contentious }
   - { code: S7.INSTR.ELECTION_PETITION,    schedule: 7, label: "Instruction fee — election petition", rule_reference: "Sch 7, item 3", computation: discretionary_floor, included_amount: 100_000, is_instruction_fee: true, applies_cost_basis: contentious }
   - { code: S7.INSTR.DIVORCE.UNDEFENDED,   schedule: 7, label: "Instruction fee — divorce, undefended", rule_reference: "Sch 7, item 4(a)(i)", computation: flat, included_amount: 10_000, is_instruction_fee: true, applies_cost_basis: contentious }
   - { code: S7.INSTR.DIVORCE.DEFENDED,     schedule: 7, label: "Instruction fee — divorce, defended", rule_reference: "Sch 7, item 4(a)(ii)", computation: flat, included_amount: 18_000, is_instruction_fee: true, applies_cost_basis: contentious }

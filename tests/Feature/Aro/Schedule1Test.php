@@ -94,3 +94,28 @@ describe('Sch 1 Third Scale — S1.NEGOTIATION', function () {
     it('counts a remainder > 1,000 as a full unit', fn () => expect(fee('S1.NEGOTIATION', 202_000))->toBe(11_252.0));
     it('accumulates all three unit bands', fn () => expect(fee('S1.NEGOTIATION', 1_000_000))->toBe(27_600.0));
 });
+
+describe('Sch 1 rules 27–41 and 46 as modifiers', function () {
+    it('reduces each side by one-sixth when one advocate acts for vendor and purchaser (para 29)', function () {
+        expect(round(fee('S1.SALE', 10_000_000, modifiers: ['S1.BOTH_VENDOR_PURCHASER']), 2))->toBe(145_833.33);
+    });
+    it('halves the mortgage fee when the same advocate prepares conveyance and mortgage (para 34)', function () {
+        expect(fee('S1.SECURITY.GRANTEE', 10_000_000, modifiers: ['S1.MORTGAGE_WITH_CONVEYANCE.SAME_ADVOCATE']))->toBe(71_875.0);
+    });
+    it('halves the mortgage fee for separate advocates on a simultaneous conveyance (para 35)', function () {
+        expect(fee('S1.SECURITY.GRANTEE', 10_000_000, modifiers: ['S1.MORTGAGE_WITH_CONVEYANCE.SEPARATE_ADVOCATES']))->toBe(71_875.0);
+    });
+    it('allows one-third of the mortgage fee where the vendor is the mortgagee (para 36)', function () {
+        expect(round(fee('S1.SECURITY.GRANTEE', 10_000_000, modifiers: ['S1.MORTGAGE_TO_VENDOR.SAME_ADVOCATE']), 2))->toBe(47_916.67);
+    });
+    it('adds Sh. 250 per additional party approved for (para 41)', function () {
+        expect(fee('S1.SALE', 10_000_000, modifiers: ['S1.ADDITIONAL_PARTY_APPROVAL']))->toBe(175_250.0)
+            ->and(fee('S1.SALE', 10_000_000, modifiers: ['S1.ADDITIONAL_PARTY_APPROVAL'], modifierAmounts: ['S1.ADDITIONAL_PARTY_APPROVAL' => 750]))->toBe(175_750.0);
+    });
+    it('adds Sh. 120 for a joining party\'s concurrence (para 46)', function () {
+        expect(fee('S2.LEASE.PREPARE', 1_000_000, modifiers: ['S1.JOINING_PARTY.CONCURRENCE']))->toBe(90_120.0);
+    });
+    it('cites para 32 for the building-society printed-form rule', function () {
+        expect(computed('S1.SECURITY.GRANTEE', 10_000_000, modifiers: ['S1.PRINTED_FORM'])->provenance())->toContain('Sch 1, para 32');
+    });
+});

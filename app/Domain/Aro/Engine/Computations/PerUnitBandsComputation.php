@@ -36,8 +36,8 @@ final class PerUnitBandsComputation implements Computation
 
     public function compute(?Money $basis, int|float|null $quantity = null): Computed
     {
-        if ($basis === null) {
-            throw new \InvalidArgumentException("{$this->ruleRef} requires a subject-matter value");
+        if ($basis === null || ! $basis->isPositive()) {
+            throw new \InvalidArgumentException("{$this->ruleRef} requires a positive subject-matter value (para 21)");
         }
 
         $units = $this->units($basis->getMinorAmount()->toInt());
