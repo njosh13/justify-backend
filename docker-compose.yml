@@ -1,0 +1,68 @@
+# Cousins Kitty — production stack for Dokploy.
+#
+# Postgres & Redis are provided by Dokploy's internal databases — point DB_* and
+# REDIS_* in your .env at those services. One image runs three roles: web,
+# queue (Horizon) and scheduler.
+
+services:
+    web:
+        build: .
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            # Run migrations (--isolated) + cache config/routes/views on boot. Web only,
+            # so the worker/scheduler containers never race on migrations.
+            AUTORUN_ENABLED: "true"
+        volumes:
+            - app_storage:/var/www/html/storage
+        ports:
+            - 8080
+        networks:
+            - dokploy-network
+            - default
+        # web comes up first and populates the shared "storage" volume, so the workers
+        # (which wait for it) never race Docker's volume initialization.
+        healthcheck:
+            test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/up || exit 1"]
+            interval: 30s
+            timeout: 5s
+            retries: 5
+            start_period: 60s
+
+    # horizon:
+    #     build: .
+    #     restart: unless-stopped
+    #     command: php artisan horizon
+    #     env_file:
+    #         - .env
+    #     volumes:
+    #         - app_storage:/var/www/html/storage
+    #     depends_on:
+    #         web:
+    #             condition: service_healthy
+    #     networks:
+    #         - dokploy-network
+    #         - default
+
+    scheduler:
+        build: .
+        restart: unless-stopped
+        command: php artisan schedule:work
+        env_file:
+            - .env
+        volumes:
+            - app_storage:/var/www/html/storage
+        depends_on:
+            web:
+                condition: service_healthy
+        networks:
+            - dokploy-network
+            - default
+
+volumes:
+    app_storage:
+
+networks:
+    dokploy-network:
+        external: true
