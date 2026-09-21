@@ -1,4 +1,4 @@
-# Cousins Kitty — production stack for Dokploy.
+# Justify — production stack for Dokploy.
 #
 # Postgres & Redis are provided by Dokploy's internal databases — point DB_* and
 # REDIS_* in your .env at those services. One image runs three roles: web,
@@ -14,6 +14,8 @@ services:
             # Run migrations (--isolated) + cache config/routes/views on boot. Web only,
             # so the worker/scheduler containers never race on migrations.
             AUTORUN_ENABLED: "true"
+            # No Node runtime in the image — render client-side.
+            INERTIA_SSR_ENABLED: "false"
         volumes:
             - app_storage:/var/www/html/storage
         ports:
