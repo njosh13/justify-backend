@@ -57,10 +57,12 @@ ENV PHP_OPCACHE_ENABLE=1 \
 
 WORKDIR /var/www/html
 
-# curl is used by the container healthcheck.
+# curl is used by the container healthcheck. The base image doesn't ship
+# pgsql or intl — the app needs both (Postgres + brick/money locale formatting).
 USER root
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
+    && install-php-extensions pgsql pdo_pgsql intl bcmath gd pcntl \
     && rm -rf /var/lib/apt/lists/*
 USER www-data
 

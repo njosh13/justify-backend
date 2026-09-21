@@ -1,8 +1,7 @@
 # Justify — production stack for Dokploy.
 #
-# Postgres & Redis are provided by Dokploy's internal databases — point DB_* and
-# REDIS_* in your .env at those services. One image runs three roles: web,
-# queue (Horizon) and scheduler.
+# Postgres is provided by Dokploy's managed databases — point DB_* in your .env
+# at that service. One image runs three roles: web, queue worker and scheduler.
 
 services:
     web:
@@ -11,9 +10,15 @@ services:
         env_file:
             - .env
         environment:
-            # Run migrations (--isolated) + cache config/routes/views on boot. Web only,
-            # so the worker/scheduler containers never race on migrations.
+            # ServerSideUp Laravel automations — web only, so the worker/scheduler
+            # containers never race on migrations.
             AUTORUN_ENABLED: "true"
+            AUTORUN_LARAVEL_MIGRATION: "true"
+            AUTORUN_LARAVEL_CONFIG_CACHE: "true"
+            AUTORUN_LARAVEL_ROUTE_CACHE: "true"
+            AUTORUN_LARAVEL_VIEW_CACHE: "true"
+            AUTORUN_LARAVEL_EVENT_CACHE: "true"
+            AUTORUN_LARAVEL_STORAGE_LINK: "true"
             # No Node runtime in the image — render client-side.
             INERTIA_SSR_ENABLED: "false"
         volumes:
@@ -32,10 +37,11 @@ services:
             retries: 5
             start_period: 60s
 
-    # horizon:
+    # Queue worker (database queue). Uncomment if you dispatch queued jobs/mail.
+    # worker:
     #     build: .
     #     restart: unless-stopped
-    #     command: php artisan horizon
+    #     command: php artisan queue:work --sleep=3 --tries=3 --backoff=30 --max-time=3600
     #     env_file:
     #         - .env
     #     volumes:
