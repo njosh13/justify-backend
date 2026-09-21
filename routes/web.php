@@ -22,7 +22,7 @@ use App\Http\Controllers\MatterClassificationController;
 use App\Http\Controllers\MatterController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::redirect('/', '/dashboard')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('firms/create', [FirmController::class, 'create'])->name('firms.create');
